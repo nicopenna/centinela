@@ -1,0 +1,1098 @@
+{
+ "/buildings": {
+  "data": [
+   {
+    "id": "bld_1042",
+    "name": "Consorcio Av. Rivadavia 4520",
+    "address": "Av. Rivadavia 4520",
+    "cuit": "30-71234567-8",
+    "active_period": "2026-11",
+    "total_units": 12
+   },
+   {
+    "id": "bld_2210",
+    "name": "Consorcio Gascón 735",
+    "address": "Gascón 735",
+    "cuit": "30-70987654-3",
+    "active_period": "2026-11",
+    "total_units": 8
+   }
+  ]
+ },
+ "/buildings/bld_1042/units": {
+  "data": [
+   {
+    "id": "bld_1042_u01",
+    "uf": 1,
+    "name": "1° A",
+    "coefficient": 0.0798,
+    "owner_name": "Marta Gómez",
+    "owner_phone": "+5491158489000"
+   },
+   {
+    "id": "bld_1042_u02",
+    "uf": 2,
+    "name": "1° B",
+    "coefficient": 0.0764,
+    "owner_name": "Jorge Pereyra",
+    "owner_phone": "+5491133966838"
+   },
+   {
+    "id": "bld_1042_u03",
+    "uf": 3,
+    "name": "2° A",
+    "coefficient": 0.0864,
+    "owner_name": "Lucía Fernández",
+    "owner_phone": "+5491167946955"
+   },
+   {
+    "id": "bld_1042_u04",
+    "uf": 4,
+    "name": "2° B",
+    "coefficient": 0.0748,
+    "owner_name": "Raúl Ibarra",
+    "owner_phone": "+5491138308208"
+   },
+   {
+    "id": "bld_1042_u05",
+    "uf": 5,
+    "name": "3° A",
+    "coefficient": 0.0841,
+    "owner_name": "Ana Sosa",
+    "owner_phone": "+5491144981313"
+   },
+   {
+    "id": "bld_1042_u06",
+    "uf": 6,
+    "name": "3° B",
+    "coefficient": 0.0806,
+    "owner_name": "Pablo Díaz",
+    "owner_phone": "+5491169124259"
+   },
+   {
+    "id": "bld_1042_u07",
+    "uf": 7,
+    "name": "4° A",
+    "coefficient": 0.0745,
+    "owner_name": "Inés Romero",
+    "owner_phone": "+5491134151491"
+   },
+   {
+    "id": "bld_1042_u08",
+    "uf": 8,
+    "name": "4° B",
+    "coefficient": 0.0835,
+    "owner_name": "Carlos Ruiz",
+    "owner_phone": "+5491168728723"
+   },
+   {
+    "id": "bld_1042_u09",
+    "uf": 9,
+    "name": "5° A",
+    "coefficient": 0.0741,
+    "owner_name": "Silvia Paz",
+    "owner_phone": "+5491169295019"
+   },
+   {
+    "id": "bld_1042_u10",
+    "uf": 10,
+    "name": "5° B",
+    "coefficient": 0.082,
+    "owner_name": "Diego Luna",
+    "owner_phone": "+5491156620776"
+   },
+   {
+    "id": "bld_1042_u11",
+    "uf": 11,
+    "name": "6° A",
+    "coefficient": 0.0747,
+    "owner_name": "Elena Vidal",
+    "owner_phone": "+5491133327882"
+   },
+   {
+    "id": "bld_1042_u12",
+    "uf": 12,
+    "name": "6° B",
+    "coefficient": 0.1291,
+    "owner_name": "Tomás Acosta",
+    "owner_phone": "+5491144836550"
+   }
+  ]
+ },
+ "/buildings/bld_1042": {
+  "id": "bld_1042",
+  "name": "Consorcio Av. Rivadavia 4520",
+  "address": "Av. Rivadavia 4520",
+  "cuit": "30-71234567-8",
+  "active_period": "2026-11",
+  "total_units": 12
+ },
+ "/buildings/bld_1042/debt": {
+  "data": [
+   {
+    "unit_id": "bld_1042_u01",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_1042_u02",
+    "total_debt": 85400.0
+   },
+   {
+    "unit_id": "bld_1042_u03",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_1042_u04",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_1042_u05",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_1042_u06",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_1042_u07",
+    "total_debt": 85400.0
+   },
+   {
+    "unit_id": "bld_1042_u08",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_1042_u09",
+    "total_debt": 85400.0
+   },
+   {
+    "unit_id": "bld_1042_u10",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_1042_u11",
+    "total_debt": 85400.0
+   },
+   {
+    "unit_id": "bld_1042_u12",
+    "total_debt": 171300.5
+   }
+  ]
+ },
+ "/buildings/bld_1042/expenses": {
+  "data": [
+   {
+    "id": "exp_1",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Sueldo encargado y cargas sociales (F.931)",
+    "amount": 1427464.26,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_2",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Edesur - servicios comunes",
+    "amount": 185008.1,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_3",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "AySA",
+    "amount": 98537.41,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_4",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Abono ascensor - Ascensores del Plata",
+    "amount": 209956.28,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_5",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Honorarios administración",
+    "amount": 324422.26,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_6",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Seguro integral consorcio",
+    "amount": 85802.03,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_7",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Monitoreo Centinela",
+    "amount": 43864.56,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_8",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Artículos de limpieza",
+    "amount": 38176.65,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_9",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Comisiones bancarias",
+    "amount": 13215.17,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_10",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Fondo de reserva 5%",
+    "amount": 121322.34,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_22",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Sueldo encargado y cargas sociales (F.931)",
+    "amount": 1473767.84,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_23",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Edesur - servicios comunes",
+    "amount": 183182.35,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_24",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "AySA",
+    "amount": 100089.55,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_25",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Abono ascensor - Ascensores del Plata",
+    "amount": 219570.64,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_26",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Honorarios administración",
+    "amount": 322536.92,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_27",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Seguro integral consorcio",
+    "amount": 90035.63,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_28",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Monitoreo Centinela",
+    "amount": 43868.41,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_29",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Artículos de limpieza",
+    "amount": 39710.82,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_30",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Comisiones bancarias",
+    "amount": 13180.84,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_31",
+    "date": "2026-10-18",
+    "period": "2026-10",
+    "description": "Reparación bomba elevadora - cambio de sello mecánico",
+    "supplier": {
+     "name": "Bombas Sur SRL"
+    },
+    "amount": 265000,
+    "type": "extraordinary"
+   },
+   {
+    "id": "exp_32",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Fondo de reserva 5%",
+    "amount": 137547.15,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_40",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Sueldo encargado y cargas sociales (F.931)",
+    "amount": 1438796.84,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_41",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Edesur - servicios comunes",
+    "amount": 182586.72,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_42",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "AySA",
+    "amount": 96374.71,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_43",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Abono ascensor - Ascensores del Plata",
+    "amount": 218554.44,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_44",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Honorarios administración",
+    "amount": 334917.92,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_45",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Seguro integral consorcio",
+    "amount": 86422.48,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_46",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Monitoreo Centinela",
+    "amount": 44284.38,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_47",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Artículos de limpieza",
+    "amount": 38257.14,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_48",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Comisiones bancarias",
+    "amount": 12753.8,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_49",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Fondo de reserva 5%",
+    "amount": 122647.42,
+    "type": "ordinary"
+   }
+  ]
+ },
+ "/buildings/bld_1042/collections": {
+  "data": [
+   {
+    "id": "col_11",
+    "unit_id": "bld_1042_u01",
+    "date": "2026-09-08",
+    "period": "2026-09",
+    "amount": 203311.97,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_12",
+    "unit_id": "bld_1042_u02",
+    "date": "2026-09-10",
+    "period": "2026-09",
+    "amount": 194649.56,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_13",
+    "unit_id": "bld_1042_u03",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "amount": 220127.25,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_14",
+    "unit_id": "bld_1042_u04",
+    "date": "2026-09-04",
+    "period": "2026-09",
+    "amount": 190573.13,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_15",
+    "unit_id": "bld_1042_u05",
+    "date": "2026-09-10",
+    "period": "2026-09",
+    "amount": 214267.38,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_16",
+    "unit_id": "bld_1042_u06",
+    "date": "2026-09-07",
+    "period": "2026-09",
+    "amount": 205350.19,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_17",
+    "unit_id": "bld_1042_u08",
+    "date": "2026-09-09",
+    "period": "2026-09",
+    "amount": 212738.72,
+    "method": "Expensas Pagas"
+   },
+   {
+    "id": "col_18",
+    "unit_id": "bld_1042_u09",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "amount": 188789.69,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_19",
+    "unit_id": "bld_1042_u10",
+    "date": "2026-09-04",
+    "period": "2026-09",
+    "amount": 208917.06,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_20",
+    "unit_id": "bld_1042_u11",
+    "date": "2026-09-08",
+    "period": "2026-09",
+    "amount": 190318.35,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_21",
+    "unit_id": "bld_1042_u12",
+    "date": "2026-09-12",
+    "period": "2026-09",
+    "amount": 328916.99,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_33",
+    "unit_id": "bld_1042_u03",
+    "date": "2026-10-09",
+    "period": "2026-10",
+    "amount": 249565.55,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_34",
+    "unit_id": "bld_1042_u04",
+    "date": "2026-10-10",
+    "period": "2026-10",
+    "amount": 216059.06,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_35",
+    "unit_id": "bld_1042_u05",
+    "date": "2026-10-04",
+    "period": "2026-10",
+    "amount": 242922.02,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_36",
+    "unit_id": "bld_1042_u06",
+    "date": "2026-10-07",
+    "period": "2026-10",
+    "amount": 232812.31,
+    "method": "Expensas Pagas"
+   },
+   {
+    "id": "col_37",
+    "unit_id": "bld_1042_u07",
+    "date": "2026-10-09",
+    "period": "2026-10",
+    "amount": 215192.52,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_38",
+    "unit_id": "bld_1042_u09",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "amount": 214037.12,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_39",
+    "unit_id": "bld_1042_u10",
+    "date": "2026-10-07",
+    "period": "2026-10",
+    "amount": 236856.19,
+    "method": "Expensas Pagas"
+   }
+  ]
+ },
+ "/buildings/bld_1042/liquidations": {
+  "data": [
+   {
+    "id": "liq_bld_1042_2026-09",
+    "period": "2026-09",
+    "status": "published",
+    "due_date": "2026-09-10",
+    "total": 2547769.06
+   },
+   {
+    "id": "liq_bld_1042_2026-10",
+    "period": "2026-10",
+    "status": "published",
+    "due_date": "2026-10-10",
+    "total": 2888490.15
+   }
+  ]
+ },
+ "/buildings/bld_2210/units": {
+  "data": [
+   {
+    "id": "bld_2210_u01",
+    "uf": 1,
+    "name": "1° A",
+    "coefficient": 0.1247,
+    "owner_name": "Marta Gómez",
+    "owner_phone": "+5491164594044"
+   },
+   {
+    "id": "bld_2210_u02",
+    "uf": 2,
+    "name": "1° B",
+    "coefficient": 0.1268,
+    "owner_name": "Jorge Pereyra",
+    "owner_phone": "+5491133623401"
+   },
+   {
+    "id": "bld_2210_u03",
+    "uf": 3,
+    "name": "2° A",
+    "coefficient": 0.1203,
+    "owner_name": "Lucía Fernández",
+    "owner_phone": "+5491160644841"
+   },
+   {
+    "id": "bld_2210_u04",
+    "uf": 4,
+    "name": "2° B",
+    "coefficient": 0.1151,
+    "owner_name": "Raúl Ibarra",
+    "owner_phone": "+5491167532091"
+   },
+   {
+    "id": "bld_2210_u05",
+    "uf": 5,
+    "name": "3° A",
+    "coefficient": 0.1234,
+    "owner_name": "Ana Sosa",
+    "owner_phone": "+5491156332102"
+   },
+   {
+    "id": "bld_2210_u06",
+    "uf": 6,
+    "name": "3° B",
+    "coefficient": 0.1224,
+    "owner_name": "Pablo Díaz",
+    "owner_phone": "+5491156714000"
+   },
+   {
+    "id": "bld_2210_u07",
+    "uf": 7,
+    "name": "4° A",
+    "coefficient": 0.1263,
+    "owner_name": "Inés Romero",
+    "owner_phone": "+5491156775016"
+   },
+   {
+    "id": "bld_2210_u08",
+    "uf": 8,
+    "name": "4° B",
+    "coefficient": 0.141,
+    "owner_name": "Carlos Ruiz",
+    "owner_phone": "+5491156448946"
+   }
+  ]
+ },
+ "/buildings/bld_2210": {
+  "id": "bld_2210",
+  "name": "Consorcio Gascón 735",
+  "address": "Gascón 735",
+  "cuit": "30-70987654-3",
+  "active_period": "2026-11",
+  "total_units": 8
+ },
+ "/buildings/bld_2210/debt": {
+  "data": [
+   {
+    "unit_id": "bld_2210_u01",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_2210_u02",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_2210_u03",
+    "total_debt": 171300.5
+   },
+   {
+    "unit_id": "bld_2210_u04",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_2210_u05",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_2210_u06",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_2210_u07",
+    "total_debt": 0
+   },
+   {
+    "unit_id": "bld_2210_u08",
+    "total_debt": 0
+   }
+  ]
+ },
+ "/buildings/bld_2210/expenses": {
+  "data": [
+   {
+    "id": "exp_1",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Sueldo encargado y cargas sociales (F.931)",
+    "amount": 1457612.72,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_2",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Edesur - servicios comunes",
+    "amount": 178140.56,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_3",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "AySA",
+    "amount": 98242.61,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_4",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Honorarios administración",
+    "amount": 313020.92,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_5",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Seguro integral consorcio",
+    "amount": 89350.16,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_6",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Monitoreo Centinela",
+    "amount": 45581.83,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_7",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Artículos de limpieza",
+    "amount": 40476.95,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_8",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Comisiones bancarias",
+    "amount": 13146.38,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_9",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "description": "Fondo de reserva 5%",
+    "amount": 111778.61,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_18",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Sueldo encargado y cargas sociales (F.931)",
+    "amount": 1423505.89,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_19",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Edesur - servicios comunes",
+    "amount": 184448.59,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_20",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "AySA",
+    "amount": 93813.77,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_21",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Honorarios administración",
+    "amount": 323919.6,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_22",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Seguro integral consorcio",
+    "amount": 92248.65,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_23",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Monitoreo Centinela",
+    "amount": 46757.97,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_24",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Artículos de limpieza",
+    "amount": 39694.43,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_25",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Comisiones bancarias",
+    "amount": 12782.47,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_26",
+    "date": "2026-10-18",
+    "period": "2026-10",
+    "description": "Reparación bomba elevadora - cambio de sello mecánico",
+    "supplier": {
+     "name": "Bombas Sur SRL"
+    },
+    "amount": 265000,
+    "type": "extraordinary"
+   },
+   {
+    "id": "exp_27",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "description": "Fondo de reserva 5%",
+    "amount": 124108.57,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_35",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Sueldo encargado y cargas sociales (F.931)",
+    "amount": 1461279.85,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_36",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Edesur - servicios comunes",
+    "amount": 179359.47,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_37",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "AySA",
+    "amount": 98276.67,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_38",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Honorarios administración",
+    "amount": 319213.59,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_39",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Seguro integral consorcio",
+    "amount": 91052.3,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_40",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Monitoreo Centinela",
+    "amount": 46253.26,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_41",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Artículos de limpieza",
+    "amount": 38621.11,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_42",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Comisiones bancarias",
+    "amount": 13518.7,
+    "type": "ordinary"
+   },
+   {
+    "id": "exp_43",
+    "date": "2026-11-05",
+    "period": "2026-11",
+    "description": "Fondo de reserva 5%",
+    "amount": 112378.75,
+    "type": "ordinary"
+   }
+  ]
+ },
+ "/buildings/bld_2210/collections": {
+  "data": [
+   {
+    "id": "col_10",
+    "unit_id": "bld_2210_u01",
+    "date": "2026-09-06",
+    "period": "2026-09",
+    "amount": 292714.64,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_11",
+    "unit_id": "bld_2210_u02",
+    "date": "2026-09-07",
+    "period": "2026-09",
+    "amount": 297644.07,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_12",
+    "unit_id": "bld_2210_u03",
+    "date": "2026-09-10",
+    "period": "2026-09",
+    "amount": 282386.29,
+    "method": "Expensas Pagas"
+   },
+   {
+    "id": "col_13",
+    "unit_id": "bld_2210_u04",
+    "date": "2026-09-10",
+    "period": "2026-09",
+    "amount": 270180.07,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_14",
+    "unit_id": "bld_2210_u05",
+    "date": "2026-09-07",
+    "period": "2026-09",
+    "amount": 289663.08,
+    "method": "Expensas Pagas"
+   },
+   {
+    "id": "col_15",
+    "unit_id": "bld_2210_u06",
+    "date": "2026-09-08",
+    "period": "2026-09",
+    "amount": 287315.73,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_16",
+    "unit_id": "bld_2210_u07",
+    "date": "2026-09-05",
+    "period": "2026-09",
+    "amount": 296470.4,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_17",
+    "unit_id": "bld_2210_u08",
+    "date": "2026-09-11",
+    "period": "2026-09",
+    "amount": 330976.45,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_28",
+    "unit_id": "bld_2210_u01",
+    "date": "2026-10-05",
+    "period": "2026-10",
+    "amount": 325003.11,
+    "method": "Transferencia"
+   },
+   {
+    "id": "col_29",
+    "unit_id": "bld_2210_u02",
+    "date": "2026-10-11",
+    "period": "2026-10",
+    "amount": 330476.3,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_30",
+    "unit_id": "bld_2210_u03",
+    "date": "2026-10-08",
+    "period": "2026-10",
+    "amount": 313535.48,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_31",
+    "unit_id": "bld_2210_u04",
+    "date": "2026-10-06",
+    "period": "2026-10",
+    "amount": 299982.82,
+    "method": "Expensas Pagas"
+   },
+   {
+    "id": "col_32",
+    "unit_id": "bld_2210_u06",
+    "date": "2026-10-06",
+    "period": "2026-10",
+    "amount": 319008.66,
+    "method": "Expensas Pagas"
+   },
+   {
+    "id": "col_33",
+    "unit_id": "bld_2210_u07",
+    "date": "2026-10-08",
+    "period": "2026-10",
+    "amount": 329173.16,
+    "method": "Pago Mis Cuentas"
+   },
+   {
+    "id": "col_34",
+    "unit_id": "bld_2210_u08",
+    "date": "2026-10-03",
+    "period": "2026-10",
+    "amount": 367485.47,
+    "method": "Transferencia"
+   }
+  ]
+ },
+ "/buildings/bld_2210/liquidations": {
+  "data": [
+   {
+    "id": "liq_bld_2210_2026-09",
+    "period": "2026-09",
+    "status": "published",
+    "due_date": "2026-09-10",
+    "total": 2347350.74
+   },
+   {
+    "id": "liq_bld_2210_2026-10",
+    "period": "2026-10",
+    "status": "published",
+    "due_date": "2026-10-10",
+    "total": 2606279.94
+   }
+  ]
+ },
+ "/units/bld_1042_u01/ledger": {
+  "data": [
+   {
+    "date": "2026-10-01",
+    "concept": "Expensas 2026-10",
+    "debit": 242000,
+    "credit": 0
+   }
+  ]
+ }
+}

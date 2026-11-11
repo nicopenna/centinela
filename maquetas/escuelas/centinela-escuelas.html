@@ -1,0 +1,372 @@
+<title>Centinela Escuelas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: tablero de cartera — resumen arriba, mapa de comunas + lista de escuelas a la izquierda, ficha de la escuela a la derecha, alertas abiertas abajo */
+:root{
+  --bg:#eef2f4; --panel:#ffffff; --sunk:#e3e9ec; --line:#cfd8dd; --fg:#16252d; --muted:#5a6d77;
+  --accent:#1d5d78; --accent-soft:#d6e7ef;
+  --ok:#2f7d4f; --ok-soft:#dcefe3; --warn:#b26a00; --warn-soft:#fbecd2; --crit:#c0322b; --crit-soft:#f8dcda; --off:#7a8790; --off-soft:#e4e8ea;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --off:#8e9aa2; --off-soft:#26323a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --off:#8e9aa2; --off-soft:#26323a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1360px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1}
+h2{font-size:21px}
+h3{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 11px;font-weight:500}
+button:hover{border-color:var(--accent)}
+button:focus-visible,select:focus-visible,.row:focus-visible,.cm:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 8px}
+
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.brand small{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.demo{display:inline-block;background:var(--warn-soft);color:var(--warn);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:2px 7px;margin-left:6px;vertical-align:2px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.ctl{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.clock{font-family:var(--f-mono);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 10px;display:flex;gap:8px;align-items:center}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+@media (prefers-reduced-motion:no-preference){.pulse{animation:p 1.6s infinite}@keyframes p{50%{opacity:.25}}}
+
+.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--f-display);font-size:34px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat.c b{color:var(--crit)} .stat.w b{color:var(--warn)}
+@media (max-width:860px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.summary .stat:last-child{grid-column:1/-1}}
+
+.main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+@media (max-width:980px){.main{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ph{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+
+/* Mapa esquemático de comunas */
+.map{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.cm{border:1px solid var(--line);background:var(--sunk);border-radius:6px;padding:6px 7px;display:flex;flex-direction:column;gap:5px;cursor:pointer;text-align:left;min-height:58px}
+.cm.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cm .n{font-family:var(--f-display);font-weight:600;font-size:15px;line-height:1;display:flex;justify-content:space-between}
+.cm .n small{font-family:var(--f-body);font-size:11px;color:var(--muted);font-weight:400}
+.dots{display:flex;flex-wrap:wrap;gap:3px}
+.d{width:9px;height:9px;border-radius:50%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+
+.st0{background:var(--ok)} .st1{background:var(--warn)} .st2{background:var(--crit)} .st3{background:var(--off)}
+.chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.chip.k0{background:var(--ok-soft);color:var(--ok)} .chip.k1{background:var(--warn-soft);color:var(--warn)} .chip.k2{background:var(--crit-soft);color:var(--crit)} .chip.k3{background:var(--off-soft);color:var(--off)}
+
+/* Lista de escuelas */
+.list{display:flex;flex-direction:column;max-height:470px;overflow-y:auto;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:6px minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:9px 6px 9px 0;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;border-radius:0;text-align:left;width:100%}
+.row:hover{background:var(--sunk)}
+.row.sel{background:var(--accent-soft)}
+.row .bar{grid-row:span 2;align-self:stretch;border-radius:3px}
+.row .nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .sub{font-size:12px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eqi{display:flex;gap:4px;grid-row:span 2;align-self:center}
+.eqi i{font-style:normal;font-family:var(--f-mono);font-size:10px;font-weight:500;width:22px;height:20px;border-radius:4px;display:grid;place-items:center}
+.eqi i.k0{background:var(--ok-soft);color:var(--ok)} .eqi i.k1{background:var(--warn-soft);color:var(--warn)} .eqi i.k2{background:var(--crit-soft);color:var(--crit)} .eqi i.k3{background:var(--off-soft);color:var(--off)}
+
+/* Ficha */
+.dhead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.dhead .meta{color:var(--muted);font-size:13px;margin-top:4px}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kv div{background:var(--sunk);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--muted);min-width:0}
+.kv b{display:block;color:var(--fg);font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:560px){.kv{grid-template-columns:minmax(0,1fr)}}
+.eqs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.eqs{grid-template-columns:minmax(0,1fr)}}
+.eq{border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.eq.k2{border-color:var(--crit)} .eq.k1{border-color:var(--warn)}
+.eq .eh{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.eq .en{font-weight:600}
+.pr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:baseline;font-size:13px}
+.pr .pl{color:var(--muted);min-width:0}
+.pr .pv{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+.pr .pv.k1{color:var(--warn)} .pr .pv.k2{color:var(--crit)}
+canvas.spark{width:100%;height:38px;display:block}
+.cause{font-size:12px;border-radius:6px;padding:6px 9px;background:var(--sunk)}
+.eq.k2 .cause{background:var(--crit-soft)} .eq.k1 .cause{background:var(--warn-soft)}
+
+/* Alertas */
+.alerts{display:flex;flex-direction:column;overflow-x:auto}
+.al{display:grid;grid-template-columns:64px 136px minmax(200px,1.4fr) minmax(140px,1fr) 110px 128px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13px;min-width:720px}
+.al.hd{border-top:0;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-top:0}
+.al .t{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.al .msg{min-width:0}
+.al .msg b{font-weight:600}
+.al.done{opacity:.55}
+.al button{padding:3px 9px;font-size:12px;white-space:nowrap}
+.note{font-size:12px;color:var(--muted);max-width:90ch}
+.empty{color:var(--muted);font-size:13px;padding:10px 0}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Centinela Escuelas <span class="demo">Datos simulados</span></h1>
+      <small>Alerta temprana de calderas, bombas, tanques, termotanques y ascensores en edificios escolares · vista de cartera para la dirección de mantenimiento</small>
+    </div>
+    <div class="controls">
+      <label class="ctl" for="vista">Vista
+        <select id="vista">
+          <option value="dir">Dirección (todas las comunas)</option>
+          <option value="zona">Empresa de zona (Comuna 8)</option>
+          <option value="esc">Director de escuela</option>
+        </select>
+      </label>
+      <label class="ctl" for="fEq">Equipo
+        <select id="fEq">
+          <option value="">Todos</option>
+          <option value="CA">Calderas</option>
+          <option value="BO">Bombas</option>
+          <option value="TQ">Tanques</option>
+          <option value="TT">Termotanques</option>
+          <option value="AS">Ascensores</option>
+        </select>
+      </label>
+      <div class="clock"><span class="pulse"></span><span id="clk">—</span></div>
+    </div>
+  </header>
+
+  <section class="summary" id="summary" aria-label="Resumen"></section>
+
+  <div class="main">
+    <div class="col">
+      <section class="panel">
+        <div class="ph"><h3>Comunas</h3><button id="allC" type="button">Ver todas</button></div>
+        <div class="map" id="map"></div>
+        <div class="legend">
+          <span><i class="d st0"></i>Normal</span><span><i class="d st1"></i>En observación</span><span><i class="d st2"></i>Crítico</span><span><i class="d st3"></i>Sin datos</span>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="ph"><h3 id="listTitle">Escuelas</h3><span class="note">Ordenadas por gravedad</span></div>
+        <div class="list" id="list"></div>
+      </section>
+    </div>
+    <section class="panel" id="detail" aria-live="polite"></section>
+  </div>
+
+  <section class="panel">
+    <div class="ph"><h3>Alertas abiertas</h3><span class="note" id="alCount"></span></div>
+    <div class="alerts" id="alerts"></div>
+  </section>
+
+  <p class="note">Maqueta para mostrar el concepto. Las escuelas, empresas y lecturas son de ejemplo y no corresponden a edificios reales. En el piloto, cada equipo lleva un nodo ESP32 con sensores de corriente, vibración, temperatura, presión y nivel, que reporta cada 1 a 5 minutos.</p>
+</div>
+
+<script>
+(function(){
+const COMUNAS={1:"Retiro · San Telmo",2:"Recoleta",3:"Balvanera",4:"La Boca · Barracas",5:"Almagro · Boedo",6:"Caballito",7:"Flores",8:"Lugano · Soldati",9:"Mataderos · Liniers",10:"Floresta · Villa Luro",11:"Villa del Parque",12:"Saavedra · Coghlan",13:"Belgrano · Núñez",14:"Palermo",15:"Chacarita · Paternal"};
+const EMPRESA={};for(let c=1;c<=15;c++)EMPRESA[c]="Contratista Zona "+String.fromCharCode(64+Math.ceil(c/3));
+const NIVELES=["Primaria","Media","Jardín","Técnica","Especial","Primaria"];
+const EQ={
+  CA:{n:"Caldera",p:[["Temp. ida","°C",70,85,95],["Presión circuito","bar",1.2,2.5,3],["Arranques quemador/h","",4,8,12]]},
+  BO:{n:"Bomba de agua",p:[["Corriente motor","A",6.5,8,9],["Vibración RMS","mm/s",2.2,4.5,7.1],["Temp. motor","°C",48,70,80]]},
+  TQ:{n:"Tanque elevado",p:[["Nivel","%",78,30,15,true],["Autonomía","h",14,6,3,true]]},
+  TT:{n:"Termotanque",p:[["Temp. agua","°C",55,45,38,true],["Ciclos/h","",2,5,8]]},
+  AS:{n:"Ascensor",p:[["Temp. motor","°C",45,65,80],["Fallas de puerta/día","",0,3,6]]}
+};
+const CAUSA={
+  CA:["Presión en baja: posible pérdida en el circuito o vaso de expansión","Quemador con arranques cortos: revisar termostato o llama","Sin encendido desde las 6:00: aulas sin calefacción al inicio de clases"],
+  BO:["Vibración en aumento desde hace 5 días: rodamientos","Corriente alta sostenida: posible traba o falta de agua en la aspiración","Motor caliente: revisar ventilación de la sala"],
+  TQ:["El nivel baja más rápido que el consumo normal: posible pérdida o flotante trabado","Autonomía bajo 6 h: la bomba no está reponiendo"],
+  TT:["No llega a temperatura: piloto o termocupla","Ciclos frecuentes: revisar aislación o termostato"],
+  AS:["Fallas de puerta repetidas: avisar a la conservadora","Motor caliente en hora pico"]
+};
+const BARRIOS={1:["Retiro","San Telmo","Monserrat"],2:["Recoleta"],3:["Balvanera","San Cristóbal"],4:["La Boca","Barracas","Parque Patricios"],5:["Almagro","Boedo"],6:["Caballito"],7:["Flores","Parque Chacabuco"],8:["Villa Lugano","Villa Soldati","Villa Riachuelo"],9:["Mataderos","Liniers"],10:["Floresta","Villa Luro","Vélez Sarsfield"],11:["Villa del Parque","Villa Devoto"],12:["Saavedra","Coghlan","Villa Urquiza"],13:["Belgrano","Núñez"],14:["Palermo"],15:["Chacarita","Paternal","Villa Crespo"]};
+
+let seed=7;function rnd(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646}
+function pick(a){return a[Math.floor(rnd()*a.length)]}
+
+const schools=[];let id=1;
+for(let c=1;c<=15;c++){
+  const k=c===8||c===4?4:c===7||c===9?3:2;
+  for(let j=0;j<k;j++){
+    const barrio=pick(BARRIOS[c]);
+    const eqs=["CA","BO","TQ"];
+    if(rnd()<.55)eqs.push("TT");
+    if(rnd()<.4)eqs.push("AS");
+    const s={id:id,code:"Escuela demo "+String(id).padStart(2,"0"),nivel:pick(NIVELES),barrio:barrio,comuna:c,anio:1905+Math.floor(rnd()*100),alumnos:180+Math.floor(rnd()*620),eq:[]};
+    eqs.forEach(t=>{
+      s.eq.push({t:t,state:0,trend:0,hist:EQ[t].p.map(p=>Array.from({length:40},()=>p[2]*(1+(rnd()-.5)*.06))),cause:"",since:null});
+    });
+    schools.push(s);id++;
+  }
+}
+// estados iniciales de ejemplo
+function setState(s,t,st,cause,mins){const e=s.eq.find(x=>x.t===t);if(!e)return;e.state=st;e.cause=cause;e.since=Date.now()-mins*60000;e.trend=st===3?0:st;if(st>0&&st<3){EQ[t].p.forEach((def,pi)=>{if(pi>0&&!(t==="TQ"))return;const inv=def[5];const tgt=st===2?(inv?def[4]*.9:def[4]*1.04):(inv?(def[3]*.95):def[3]*1.03);e.hist[pi]=e.hist[pi].map((v,i)=>i<20?v:v+(tgt-v)*((i-20)/19))})}}
+setState(schools.find(s=>s.comuna===8),"CA",2,CAUSA.CA[2],48);
+setState(schools.filter(s=>s.comuna===8)[2],"BO",1,CAUSA.BO[0],1440*5);
+setState(schools.find(s=>s.comuna===4),"TQ",2,CAUSA.TQ[0],95);
+setState(schools.filter(s=>s.comuna===4)[1],"CA",1,CAUSA.CA[1],300);
+setState(schools.find(s=>s.comuna===9),"CA",1,CAUSA.CA[0],600);
+setState(schools.find(s=>s.comuna===7),"BO",2,CAUSA.BO[1],22);
+setState(schools.find(s=>s.comuna===14),"TT",1,CAUSA.TT[0],180);
+setState(schools.find(s=>s.comuna===11),"BO",3,"Nodo sin reportar hace 40 min: revisar alimentación o señal",40);
+const as=schools.find(s=>s.eq.some(e=>e.t==="AS")&&s.comuna!==8);if(as)setState(as,"AS",1,CAUSA.AS[0],720);
+
+const alerts=[];
+function buildAlerts(){schools.forEach(s=>s.eq.forEach(e=>{if(e.state>0&&!alerts.find(a=>a.s===s&&a.e===e)){alerts.push({s:s,e:e,at:e.since,done:false})}}))}
+buildAlerts();
+
+function sstate(s){let m=0;s.eq.forEach(e=>{const v=e.state===3?.5:e.state;if(v>m)m=v});return m===.5?3:m}
+const LBL=["Normal","En observación","Crítico","Sin datos"];
+const rank=st=>st===2?3:st===1?2:st===3?1:0;
+
+let selC=null,selS=null,fEq="",vista="dir";
+const $=q=>document.querySelector(q);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function visible(){
+  let L=schools;
+  if(vista==="zona")L=L.filter(s=>s.comuna===8);
+  if(vista==="esc")L=[schools.find(s=>s.comuna===8)];
+  if(selC)L=L.filter(s=>s.comuna===selC);
+  if(fEq)L=L.filter(s=>s.eq.some(e=>e.t===fEq));
+  return L;
+}
+function eqVisible(s){return fEq?s.eq.filter(e=>e.t===fEq):s.eq}
+
+function ago(ms){const m=Math.round((Date.now()-ms)/60000);if(m<60)return m+" min";const h=Math.round(m/60);if(h<48)return h+" h";return Math.round(h/24)+" días"}
+
+function renderSummary(){
+  const L=visible();let n=0,c=0,w=0,o=0;
+  L.forEach(s=>eqVisible(s).forEach(e=>{n++;if(e.state===2)c++;else if(e.state===1)w++;else if(e.state===3)o++}));
+  const open=alerts.filter(a=>!a.done&&L.includes(a.s));
+  const resp=open.length?Math.round(open.reduce((t,a)=>t+(Date.now()-a.at),0)/open.length/3600000):0;
+  $("#summary").innerHTML=
+   `<div class="stat"><b>${L.length}</b><span>Escuelas monitoreadas</span></div>
+    <div class="stat"><b>${n}</b><span>Equipos con sensores</span></div>
+    <div class="stat c"><b>${c}</b><span>Críticos</span></div>
+    <div class="stat w"><b>${w}</b><span>En observación</span></div>
+    <div class="stat"><b>${resp} h</b><span>Antigüedad media de alertas abiertas</span></div>`;
+}
+
+function renderMap(){
+  const base=vista==="dir"?schools:visible();
+  let h="";
+  for(let c=1;c<=15;c++){
+    const L=base.filter(s=>s.comuna===c);
+    const dots=L.map(s=>`<i class="d st${sstate(s)}" title="${esc(s.code)}"></i>`).join("");
+    const off=vista!=="dir"&&!L.length;
+    h+=`<button type="button" class="cm${selC===c?" sel":""}" data-c="${c}" ${off?"disabled style=\"opacity:.4\"":""} aria-label="Comuna ${c}, ${esc(COMUNAS[c])}"><span class="n">C${c}<small>${L.length}</small></span><span class="dots">${dots}</span></button>`;
+  }
+  $("#map").innerHTML=h;
+}
+
+function renderList(){
+  const L=visible().slice().sort((a,b)=>rank(sstate(b))-rank(sstate(a))||a.comuna-b.comuna);
+  $("#listTitle").textContent=selC?`Escuelas · Comuna ${selC}`:"Escuelas";
+  if(!L.length){$("#list").innerHTML=`<div class="empty">No hay escuelas con ese filtro.</div>`;return}
+  if(!selS||!L.includes(selS))selS=L[0];
+  $("#list").innerHTML=L.map(s=>{
+    const st=sstate(s);
+    const icons=s.eq.map(e=>`<i class="k${e.state}" title="${EQ[e.t].n}: ${LBL[e.state]}">${e.t}</i>`).join("");
+    return `<button type="button" class="row${s===selS?" sel":""}" data-s="${s.id}"><span class="bar st${st}"></span><span class="nm">${esc(s.code)} · ${s.nivel}</span><span class="eqi">${icons}</span><span class="sub">${esc(s.barrio)} · Comuna ${s.comuna} · ${EMPRESA[s.comuna]}</span></button>`;
+  }).join("");
+}
+
+function fmt(v,u){const d=Math.abs(v)<10?1:0;return v.toFixed(d)+(u?" "+u:"")}
+function pstate(p,v){const inv=p[5];if(inv){if(v<=p[4])return 2;if(v<=p[3])return 1;return 0}if(v>=p[4])return 2;if(v>=p[3])return 1;return 0}
+
+function renderDetail(){
+  const s=selS;
+  if(!s){$("#detail").innerHTML=`<div class="empty">Elegí una escuela de la lista.</div>`;return}
+  const st=sstate(s);
+  const eqs=eqVisible(s);
+  $("#detail").innerHTML=`
+   <div class="dhead"><div><h2>${esc(s.code)} · ${s.nivel}</h2><div class="meta">${esc(s.barrio)}, Comuna ${s.comuna} (${esc(COMUNAS[s.comuna])})</div></div><span class="chip k${st}">${LBL[st]}</span></div>
+   <div class="kv"><div>Empresa de mantenimiento<b>${EMPRESA[s.comuna]}</b></div><div>Edificio<b>Construido en ${s.anio} · ${new Date().getFullYear()-s.anio} años</b></div><div>Matrícula<b>${s.alumnos} alumnos</b></div></div>
+   <div class="eqs">${eqs.map((e,ei)=>{
+     const d=EQ[e.t];
+     const rows=d.p.map((p,i)=>{const v=e.hist[i][e.hist[i].length-1];const k=e.state===3?0:pstate(p,v);return `<div class="pr"><span class="pl">${p[0]}</span><span class="pv k${k}">${e.state===3?"—":fmt(v,p[1])}</span></div>`}).join("");
+     return `<div class="eq k${e.state}"><div class="eh"><span class="en">${d.n}</span><span class="chip k${e.state}">${LBL[e.state]}</span></div>
+       <canvas class="spark" data-e="${ei}" aria-label="Tendencia de ${d.p[0][0]}, últimas lecturas" role="img"></canvas>
+       ${rows}
+       ${e.state?`<div class="cause"><b>${esc(e.cause)}</b><br>Desde hace ${ago(e.since)} · ${e.state===2?"Empresa de zona notificada":"En seguimiento"}</div>`:`<div class="cause">Sin novedades. Próximo preventivo según rutina mensual.</div>`}
+     </div>`}).join("")}</div>`;
+  drawSparks(eqs);
+}
+
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function drawSparks(eqs){
+  document.querySelectorAll("canvas.spark").forEach(cv=>{
+    const e=eqs[+cv.dataset.e];const p=EQ[e.t].p[0];const h=e.hist[0];
+    const dpr=window.devicePixelRatio||1;const W=cv.clientWidth,H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;
+    const x=cv.getContext("2d");x.scale(dpr,dpr);
+    const lo=Math.min(...h,p[5]?p[4]:p[2])*0.95,hi=Math.max(...h,p[5]?p[2]:p[4])*1.05;
+    const Y=v=>H-2-(v-lo)/(hi-lo)*(H-4);
+    x.strokeStyle=css("--line");x.setLineDash([3,3]);x.lineWidth=1;
+    [p[3],p[4]].forEach((t,i)=>{x.strokeStyle=css(i?"--crit":"--warn");x.globalAlpha=.6;x.beginPath();x.moveTo(0,Y(t));x.lineTo(W,Y(t));x.stroke()});
+    x.globalAlpha=1;x.setLineDash([]);
+    if(e.state===3){x.fillStyle=css("--muted");x.font="12px "+css("--f-body");x.fillText("Sin datos del nodo",4,H/2+4);return}
+    const col=css(e.state===2?"--crit":e.state===1?"--warn":"--accent");
+    x.strokeStyle=col;x.lineWidth=1.6;x.beginPath();
+    h.forEach((v,i)=>{const px=i/(h.length-1)*(W-4);i?x.lineTo(px,Y(v)):x.moveTo(px,Y(v))});x.stroke();
+    const lx=W-4,ly=Y(h[h.length-1]);x.fillStyle=col;x.beginPath();x.arc(lx,ly,3,0,7);x.fill();
+  });
+}
+
+function renderAlerts(){
+  const L=visible();
+  const A=alerts.filter(a=>L.includes(a.s)&&(!fEq||a.e.t===fEq)).sort((a,b)=>(a.done-b.done)||(b.e.state===2)-(a.e.state===2)||a.at-b.at);
+  const open=A.filter(a=>!a.done).length;
+  $("#alCount").textContent=open+(open===1?" abierta":" abiertas");
+  if(!A.length){$("#alerts").innerHTML=`<div class="empty">No hay alertas para esta vista.</div>`;return}
+  $("#alerts").innerHTML=`<div class="al hd"><span>Hace</span><span>Estado</span><span>Escuela y equipo</span><span>Responsable</span><span>Aviso</span><span></span></div>`+
+   A.map((a,i)=>`<div class="al${a.done?" done":""}"><span class="t">${ago(a.at)}</span><span><span class="chip k${a.e.state}">${LBL[a.e.state]}</span></span>
+   <span class="msg"><b>${esc(a.s.code)} · ${EQ[a.e.t].n}</b><br>${esc(a.e.cause)}</span>
+   <span>${a.e.t==="AS"?"Conservadora de ascensores":EMPRESA[a.s.comuna]}</span>
+   <span class="t">${a.e.state===2?"WhatsApp + mail":"Mail diario"}</span>
+   <span>${a.done?"Resuelta":`<button type="button" data-a="${alerts.indexOf(a)}">Marcar resuelta</button>`}</span></div>`).join("");
+}
+
+function renderAll(){renderSummary();renderMap();renderList();renderDetail();renderAlerts()}
+
+// lecturas simuladas
+function tick(){
+  schools.forEach(s=>s.eq.forEach(e=>{
+    if(e.state===3)return;
+    EQ[e.t].p.forEach((p,i)=>{
+      const h=e.hist[i];const last=h[h.length-1];
+      const act=e.state&&(i===0||e.t==="TQ");const tgt=act?last:p[2];
+      const drift=act?(p[5]?-1:1)*Math.abs(p[2])*0.004:0;
+      let v=last+(tgt-last)*.2+drift+(rnd()-.5)*Math.abs(p[2])*.03;
+      v=p[5]?Math.max(v,p[4]*.5):Math.min(v,p[4]*1.15);
+      h.push(v);h.shift();
+    });
+  }));
+  $("#clk").textContent="Lectura en vivo · "+new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  renderSummary();renderDetail();
+}
+
+document.addEventListener("click",ev=>{
+  const c=ev.target.closest(".cm");if(c&&!c.disabled){const n=+c.dataset.c;selC=selC===n?null:n;selS=null;renderAll();return}
+  const r=ev.target.closest(".row");if(r){selS=schools.find(s=>s.id===+r.dataset.s);renderList();renderDetail();return}
+  const b=ev.target.closest("button[data-a]");if(b){const a=alerts[+b.dataset.a];a.done=true;a.e.state=0;a.e.cause="";a.e.hist[0]=a.e.hist[0].map(()=>EQ[a.e.t].p[0][2]);renderAll();return}
+});
+$("#allC").addEventListener("click",()=>{selC=null;renderAll()});
+$("#fEq").addEventListener("change",e=>{fEq=e.target.value;renderAll()});
+$("#vista").addEventListener("change",e=>{vista=e.target.value;selC=null;selS=null;renderAll()});
+window.addEventListener("resize",()=>renderDetail());
+if(window.matchMedia)matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>renderDetail());
+
+renderAll();tick();setInterval(tick,3000);
+})();
+</script>

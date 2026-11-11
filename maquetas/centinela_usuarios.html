@@ -1,0 +1,1255 @@
+<title>Centinela por rol</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: barra de roles fija arriba; cada rol es una vista. Roles de escritorio = consola de paneles; roles de calle = teléfono + nota lateral de qué ve y por qué */
+:root{
+  --bg:#eef2f4; --panel:#ffffff; --sunk:#e5ebee; --line:#cfd8dd; --fg:#16252d; --muted:#5a6d77;
+  --accent:#1d5d78; --accent-soft:#d6e7ef; --frame:#1b2a32;
+  --ok:#2f7d4f; --ok-soft:#dcefe3; --warn:#b26a00; --warn-soft:#fbecd2; --crit:#c0322b; --crit-soft:#f8dcda; --trend:#3d5fc4; --trend-soft:#e0e6fa;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48; --frame:#05090b;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --trend:#8ea6ff; --trend-soft:#232e55; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48; --frame:#05090b;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --trend:#8ea6ff; --trend-soft:#232e55; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+.wrap{max-width:1500px;margin:0 auto;padding-block:18px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+h1,h2{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1}
+h2{font-size:26px;line-height:1.1}
+h3{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+h4{margin:0;font-size:15px;font-weight:600}
+p{margin:0}
+.num,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 11px;font-weight:500}
+button:hover{border-color:var(--accent)}
+button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+button.ghost{background:transparent}
+button.small{padding:3px 8px;font-size:12px}
+button[disabled]{opacity:.55;cursor:default}
+a{color:var(--accent)}
+.note{font-size:12px;color:var(--muted)}
+.demo{display:inline-block;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:12px;border-radius:6px;padding:3px 8px;vertical-align:3px;font-family:var(--f-body)}
+
+/* Barra de roles */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1500px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:baseline;gap:8px}
+.logo b{font-family:var(--f-display);font-size:24px;font-weight:700;letter-spacing:.02em}
+.roles{display:flex;gap:4px;overflow-x:auto;scrollbar-width:thin;min-width:0;flex:1}
+.roles a{flex:none;text-decoration:none;color:var(--fg);padding:7px 12px;border-radius:7px;border:1px solid transparent;font-weight:500;white-space:nowrap;display:flex;gap:7px;align-items:center}
+.roles a:hover{border-color:var(--line)}
+.roles a[aria-current="page"]{background:var(--accent);color:var(--panel)}
+.roles a .k{font-size:11px;font-family:var(--f-mono);opacity:.7}
+
+/* Ficha de rol */
+.rolehead{display:flex;flex-wrap:wrap;gap:12px 28px;align-items:flex-end;justify-content:space-between}
+.rolehead .who{display:flex;flex-direction:column;gap:6px;max-width:70ch}
+.rolehead .who p{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--panel);white-space:nowrap}
+.chip.acc{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.grid{display:grid;gap:16px;align-items:start}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-op{grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr) minmax(0,1fr)}
+@media (max-width:1180px){.g3,.g-op{grid-template-columns:repeat(2,minmax(0,1fr))}.g-op>.wide{grid-column:1/-1}}
+@media (max-width:760px){.g3,.g2,.g-op{grid-template-columns:minmax(0,1fr)}}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.kpis.k4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;min-width:0}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.stat b{font-family:var(--f-display);font-size:34px;line-height:1.05;font-weight:600}
+.stat small{font-size:12px;color:var(--muted)}
+.stat.ok b{color:var(--ok)} .stat.warn b{color:var(--warn)} .stat.crit b{color:var(--crit)} .stat.trend b{color:var(--trend)}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.kpis,.kpis.k4{grid-template-columns:repeat(2,minmax(0,1fr))}.stat b{font-size:28px}}
+
+/* Pills y estados */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.crit{background:var(--crit-soft);color:var(--crit)} .pill.trend{background:var(--trend-soft);color:var(--trend)} .pill.mut{background:var(--sunk);color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;display:inline-block}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.crit{background:var(--crit)} .dot.trend{background:var(--trend)} .dot.mut{background:var(--muted)}
+
+/* Listas */
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 12px;padding:10px 0;border-top:1px solid var(--line);align-items:center}
+.row:first-child{border-top:0;padding-top:2px}
+.row .t{font-weight:600;min-width:0}
+.row .s{font-size:12px;color:var(--muted);grid-column:1;min-width:0}
+.row .r{grid-row:1/span 2;grid-column:2;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.sev{border-left:3px solid var(--line);padding-left:10px}
+.sev.crit{border-left-color:var(--crit)} .sev.warn{border-left-color:var(--warn)} .sev.trend{border-left-color:var(--trend)} .sev.ok{border-left-color:var(--ok)}
+
+/* Tablas */
+.tbl-wrap{overflow-x:auto;margin-inline:-4px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;white-space:nowrap}
+td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+
+/* Matriz de permisos */
+.matrix th:first-child,.matrix td:first-child{position:sticky;left:0;background:var(--panel);min-width:190px}
+.matrix td.c{text-align:center;font-family:var(--f-mono);font-weight:500}
+.lv{display:inline-block;min-width:26px;border-radius:5px;padding:1px 5px;font-size:12px}
+.lv.A{background:var(--accent);color:var(--panel)} .lv.E{background:var(--accent-soft);color:var(--accent)} .lv.V{background:var(--sunk);color:var(--fg)} .lv.P{background:var(--trend-soft);color:var(--trend)} .lv.X{color:var(--muted)}
+.matrix tr.grp td{background:var(--sunk);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.matrix tr.grp td:first-child{background:var(--sunk)}
+
+/* Tarjetas de rol */
+.rcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:1100px){.rcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.rcards{grid-template-columns:minmax(0,1fr)}}
+.rcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.rcard header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rcard h2{font-size:23px}
+.rcard ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.rcard .meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:9px}
+.rcard .meta b{color:var(--fg);font-weight:500}
+.rcard footer{margin-top:auto}
+
+/* Flujo de punta a punta */
+.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;counter-reset:f}
+@media (max-width:1180px){.flow{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:640px){.flow{grid-template-columns:minmax(0,1fr)}}
+.flow li{counter-increment:f;background:var(--sunk);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.flow li::before{content:counter(f);font-family:var(--f-display);font-size:22px;font-weight:700;color:var(--accent);line-height:1}
+.flow li b{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.flow li span{font-size:13px}
+
+/* Kanban OT */
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.kanban{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.col{background:var(--sunk);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.col h3{display:flex;justify-content:space-between}
+.ot{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px;display:flex;flex-direction:column;gap:3px;font-size:12px;min-width:0}
+.ot b{font-size:13px}
+.ot .id{font-family:var(--f-mono);color:var(--muted);font-size:11px}
+
+/* Teléfono */
+.dev{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.dev{grid-template-columns:minmax(0,1fr)}}
+.phone{width:100%;max-width:380px;border:9px solid var(--frame);border-radius:34px;background:var(--bg);overflow:hidden;justify-self:center;box-shadow:0 10px 30px rgba(10,20,25,.16)}
+.ph-top{background:var(--panel);padding:12px 16px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.ph-top small{color:var(--muted);font-size:12px}
+.ph-top b{font-family:var(--f-display);font-size:22px;font-weight:600;line-height:1.1}
+.ph-body{padding:12px;display:flex;flex-direction:column;gap:10px;height:620px;overflow-y:auto}
+.ph-nav{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--panel)}
+.ph-nav button{border:0;border-radius:0;background:transparent;font-size:11px;padding:9px 2px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px}
+.ph-nav button[aria-pressed="true"]{color:var(--accent);font-weight:600}
+.ph-nav svg{width:20px;height:20px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card.alert{border-color:var(--crit);background:var(--crit-soft)}
+.card.alertw{border-color:var(--warn);background:var(--warn-soft)}
+.big{font-family:var(--f-display);font-size:38px;font-weight:600;line-height:1}
+.check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.check:first-of-type{border-top:0}
+.check input{width:20px;height:20px;margin:0;accent-color:var(--accent);flex:none}
+.check label{display:flex;flex-direction:column;gap:1px;cursor:pointer;min-width:0}
+.check label small{color:var(--muted);font-size:12px}
+.check input:checked+label span{text-decoration:line-through;color:var(--muted)}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.btnrow button{flex:1 1 auto}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.quick button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;font-size:12px}
+.quick svg{width:22px;height:22px;color:var(--accent)}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.status-grid div{background:var(--sunk);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:2px;font-size:12px}
+.status-grid div b{font-size:13px;display:flex;gap:6px;align-items:center}
+
+.why{display:flex;flex-direction:column;gap:14px;max-width:62ch}
+.why ol,.why ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.why .panel{gap:8px}
+
+/* Barra de progreso */
+.meter{height:7px;border-radius:5px;background:var(--sunk);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent)}
+.meter.ok i{background:var(--ok)} .meter.warn i{background:var(--warn)} .meter.crit i{background:var(--crit)}
+
+.spark{width:100%;height:56px;display:block}
+.segbtn{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--panel)}
+.segbtn button{border:0;border-radius:0;border-left:1px solid var(--line);padding:5px 10px;font-size:12px}
+.segbtn button:first-child{border-left:0}
+.segbtn button[aria-pressed="true"]{background:var(--accent);color:var(--panel)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:500;z-index:20;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:no-preference){.toast{animation:t .2s ease-out}@keyframes t{from{opacity:0;transform:translate(-50%,8px)}}}
+.pane{display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.field>span{font-size:12px;color:var(--muted);font-weight:600}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
+.field textarea{min-height:70px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.form-grid .full{grid-column:1/-1}
+@media (max-width:760px){.form-grid{grid-template-columns:minmax(0,1fr)}}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.eqgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.eq{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.eq header{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.eq .v{font-family:var(--f-mono);font-size:20px;font-variant-numeric:tabular-nums}
+.eq .lim{font-size:12px;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:7px}
+.bars .b{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;font-size:12px}
+.bars .b .meter{grid-column:1/-1}
+.otp{display:flex;gap:6px;justify-content:space-between}
+.otp input{width:100%;text-align:center;font-family:var(--f-mono);font-size:22px;padding:10px 0;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.rolepick{display:flex;flex-direction:column;gap:8px}
+.rolepick button{text-align:left;display:flex;flex-direction:column;gap:2px;padding:12px}
+.rolepick button small{color:var(--muted);font-weight:400}
+.brandmark{font-family:var(--f-display);font-size:30px;font-weight:700;letter-spacing:.03em;text-align:center;padding-top:20px}
+.copy{display:flex;gap:6px;align-items:center;background:var(--sunk);border-radius:6px;padding:6px 8px;font-family:var(--f-mono);font-size:12px;justify-content:space-between}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);align-items:center}
+</style>
+
+<nav class="bar" aria-label="Tipos de usuario">
+  <div class="bar-in">
+    <div class="logo"><b>CENTINELA</b><span class="demo">Datos de ejemplo</span></div>
+    <div class="roles" id="roles">
+      <a href="#roles" data-v="roles">Mapa de roles</a>
+      <a href="#ingreso" data-v="ingreso">Ingreso</a>
+      <a href="#operador" data-v="operador"><span class="k">1</span>Operador Centinela</a>
+      <a href="#administrador" data-v="administrador"><span class="k">2</span>Administrador</a>
+      <a href="#consejo" data-v="consejo"><span class="k">3</span>Consejo</a>
+      <a href="#encargado" data-v="encargado"><span class="k">4</span>Encargado</a>
+      <a href="#proveedor" data-v="proveedor"><span class="k">5</span>Proveedor</a>
+      <a href="#propietario" data-v="propietario"><span class="k">6</span>Propietario / inquilino</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ============ MAPA DE ROLES ============ -->
+<section data-view="roles">
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div class="rolehead">
+      <div class="who">
+        <h1>Quién usa Centinela y para qué</h1>
+        <p>Seis tipos de usuario. Centinela opera (monitoreo, órdenes de trabajo, liquidación), el administrador matriculado firma y responde legalmente, y el resto ve y hace solo lo que le toca. Tocá un rol arriba para ver su pantalla.</p>
+      </div>
+      <div class="legend">
+        <span><span class="lv A">A</span> aprueba / firma</span>
+        <span><span class="lv E">E</span> carga y edita</span>
+        <span><span class="lv P">P</span> solo lo propio</span>
+        <span><span class="lv V">V</span> ve</span>
+        <span><span class="lv X">·</span> sin acceso</span>
+      </div>
+    </div>
+
+    <div class="rcards">
+      <article class="rcard">
+        <header><h2>1 · Operador Centinela</h2><span class="pill trend">Interno</span></header>
+        <p class="note">El equipo de Centinela que mira todos los edificios a la vez. Hoy Nico y Alan; después, operadores con turnos.</p>
+        <ul>
+          <li>Atiende alarmas y las escala si nadie responde en 2 h</li>
+          <li>Crea órdenes de trabajo y las asigna a proveedores</li>
+          <li>Controla la red: nodos, gateways, baterías, latidos</li>
+          <li>Prepara la liquidación de expensas para que el administrador la firme</li>
+          <li>Da de alta edificios, equipos, sensores y usuarios</li>
+        </ul>
+        <div class="meta"><span>Dónde</span><b>Consola web, pantalla grande</b><span>Avisos</span><b>WhatsApp + Telegram, guardia rotativa</b><span>Alcance</span><b>Toda la cartera</b></div>
+        <footer><a href="#operador">Ver su pantalla →</a></footer>
+      </article>
+      <article class="rcard">
+        <header><h2>2 · Administrador</h2><span class="pill trend">Matriculado RPA</span></header>
+        <p class="note">Alan, inscripto en el Registro Público de Administradores (Ley 941). Es la firma legal del consorcio; Centinela le deja todo listo.</p>
+        <ul>
+          <li>Aprueba presupuestos y pagos a proveedores</li>
+          <li>Firma y emite la liquidación mensual de expensas</li>
+          <li>Sigue morosidad, juicios y vencimientos legales</li>
+          <li>Convoca asambleas y publica actas</li>
+          <li>Responde reclamos que el operador le escala</li>
+        </ul>
+        <div class="meta"><span>Dónde</span><b>Web de escritorio y celular</b><span>Avisos</span><b>Resumen diario por mail + urgentes por WhatsApp</b><span>Alcance</span><b>Los consorcios que administra</b></div>
+        <footer><a href="#administrador">Ver su pantalla →</a></footer>
+      </article>
+      <article class="rcard">
+        <header><h2>3 · Consejo de propietarios</h2><span class="pill mut">Control</span></header>
+        <p class="note">Los 2 o 3 propietarios que el reglamento designa para controlar al administrador (CCyC art. 2064).</p>
+        <ul>
+          <li>Ve ingresos, egresos y saldo de caja en el momento</li>
+          <li>Da conformidad a gastos grandes antes de que se paguen</li>
+          <li>Ve el estado de los equipos y el cumplimiento legal</li>
+          <li>Revisa la rendición de cuentas mensual</li>
+        </ul>
+        <div class="meta"><span>Dónde</span><b>Celular y web</b><span>Avisos</span><b>WhatsApp cuando hay algo para aprobar</b><span>Alcance</span><b>Su edificio</b></div>
+        <footer><a href="#consejo">Ver su pantalla →</a></footer>
+      </article>
+      <article class="rcard">
+        <header><h2>4 · Encargado</h2><span class="pill mut">En el edificio</span></header>
+        <p class="note">El encargado o el personal de mantenimiento propio. Es los ojos en el lugar: confirma lo que dice el sensor.</p>
+        <ul>
+          <li>Recibe las alarmas de su edificio y confirma qué ve</li>
+          <li>Hace la ronda diaria con checklist y fotos</li>
+          <li>Abre la puerta a proveedores y verifica que terminaron</li>
+          <li>Reporta problemas con foto en dos toques</li>
+        </ul>
+        <div class="meta"><span>Dónde</span><b>Celular (app web)</b><span>Avisos</span><b>WhatsApp, primer escalón</b><span>Alcance</span><b>Su edificio, sin datos de dinero</b></div>
+        <footer><a href="#encargado">Ver su pantalla →</a></footer>
+      </article>
+      <article class="rcard">
+        <header><h2>5 · Proveedor</h2><span class="pill mut">Externo</span></header>
+        <p class="note">Conservadora de ascensores, bombista, gasista, plomero, limpieza de tanques. Ve solo las órdenes que le asignan.</p>
+        <ul>
+          <li>Acepta o rechaza órdenes de trabajo</li>
+          <li>Ve los datos del sensor antes de ir</li>
+          <li>Carga presupuesto, fotos y remito, y cierra la orden</li>
+          <li>Sube factura y sigue cuándo cobra</li>
+          <li>Mantiene al día seguro, ART y matrícula</li>
+        </ul>
+        <div class="meta"><span>Dónde</span><b>Celular o web, o por link de WhatsApp sin cuenta</b><span>Avisos</span><b>WhatsApp por orden nueva</b><span>Alcance</span><b>Sus órdenes y sus facturas</b></div>
+        <footer><a href="#proveedor">Ver su pantalla →</a></footer>
+      </article>
+      <article class="rcard">
+        <header><h2>6 · Propietario / inquilino</h2><span class="pill mut">Vecino</span></header>
+        <p class="note">Cada unidad tiene un titular. El inquilino entra con permisos que le da el propietario.</p>
+        <ul>
+          <li>Ve y paga expensas, descarga comprobantes</li>
+          <li>Hace reclamos y sigue su estado</li>
+          <li>Ve si hay agua caliente, ascensor y agua en el tanque</li>
+          <li>Recibe avisos (cortes, obras, asambleas)</li>
+          <li>Reserva el SUM y descarga actas y balances</li>
+        </ul>
+        <div class="meta"><span>Dónde</span><b>Celular (app web)</b><span>Avisos</span><b>WhatsApp o mail, a elección</b><span>Alcance</span><b>Su unidad y lo común de su edificio</b></div>
+        <footer><a href="#propietario">Ver su pantalla →</a></footer>
+      </article>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>Qué puede hacer cada uno</h2><span class="note">Base para los permisos del sistema. El administrador puede delegar en el operador lo que marque como “E”.</span></div>
+      <div class="tbl-wrap">
+        <table class="matrix">
+          <thead><tr><th>Función</th><th>Operador</th><th>Administrador</th><th>Consejo</th><th>Encargado</th><th>Proveedor</th><th>Propietario</th><th>Inquilino</th></tr></thead>
+          <tbody>
+            <tr class="grp"><td colspan="8">Equipos y mantenimiento</td></tr>
+            <tr><td>Alarmas y lecturas de sensores</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv V">V</span></td></tr>
+            <tr><td>Órdenes de trabajo</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr><td>Plan preventivo y vencimientos legales</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr><td>Ronda diaria y checklist</td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr><td>Alta de equipos, sensores y gateways</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr class="grp"><td colspan="8">Dinero</td></tr>
+            <tr><td>Liquidación de expensas</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv P">P</span></td></tr>
+            <tr><td>Pagos y conciliación bancaria</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv P">P</span></td></tr>
+            <tr><td>Presupuestos de proveedores</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr><td>Morosidad y gestión de cobro</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr class="grp"><td colspan="8">Vida del consorcio</td></tr>
+            <tr><td>Reclamos</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv P">P</span></td></tr>
+            <tr><td>Comunicaciones a vecinos</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv V">V</span></td></tr>
+            <tr><td>Asambleas y actas</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr><td>Reservas del SUM</td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv P">P</span></td></tr>
+            <tr><td>Documentos (reglamento, balances, certificados)</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv V">V</span></td></tr>
+            <tr><td>Personal del edificio (sueldos FATERYH)</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv V">V</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td></tr>
+            <tr><td>Usuarios y permisos</td><td class="c"><span class="lv E">E</span></td><td class="c"><span class="lv A">A</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv X">·</span></td><td class="c"><span class="lv P">P</span></td><td class="c"><span class="lv X">·</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">El inquilino solo ve expensas ordinarias si el propietario se lo habilita; las extraordinarias y el voto en asamblea son del propietario. Proveedor “P” en pagos = ve el estado de sus propias facturas.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-h"><h2>Un caso de punta a punta</h2><span class="note">Bomba 2 de Rivadavia 4520 empieza a vibrar más de lo normal. Así pasa por cada rol.</span></div>
+      <ol class="flow">
+        <li><b>Sensor</b><span>El ADXL345 mide 7,4 mm/s RMS, sube 40% en 10 días. El nodo marca tendencia.</span></li>
+        <li><b>Operador</b><span>Ve la alarma amarilla, revisa la curva y crea la OT-0412.</span></li>
+        <li><b>Encargado</b><span>Recibe el WhatsApp, escucha la bomba y confirma ruido con foto.</span></li>
+        <li><b>Proveedor</b><span>Bombas Sur acepta, mira la curva y presupuesta rodamientos por $ 385.000.</span></li>
+        <li><b>Administrador</b><span>Supera el tope de $ 300.000: aprueba y lo manda al consejo.</span></li>
+        <li><b>Consejo</b><span>Da conformidad desde el celular. El pago queda programado.</span></li>
+        <li><b>Propietario</b><span>Ve “Bomba 2 en mantenimiento, el agua no se corta” y el gasto en la próxima expensa.</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INGRESO ============ -->
+<section data-view="ingreso" hidden>
+  <div class="dev">
+    <div class="phone" aria-label="Pantalla de ingreso">
+      <div class="ph-body" style="height:700px">
+        <div class="pane" data-step="0">
+          <div class="brandmark">CENTINELA</div>
+          <p class="note" style="text-align:center">Tu edificio, al día</p>
+          <div class="card">
+            <h4>Entrá con tu celular</h4>
+            <div class="field"><label for="ing-tel">Número de WhatsApp</label><input id="ing-tel" type="tel" value="+54 9 11 5555-0182" inputmode="tel"></div>
+            <button class="primary" data-step-to="1">Enviarme un código</button>
+            <p class="note">Sin contraseñas. Te mandamos un código de 6 números por WhatsApp. Si no usás WhatsApp, entrá con tu mail.</p>
+          </div>
+          <button class="ghost small" data-toast="Ingreso con mail y código (alternativa)">Prefiero entrar con mail</button>
+        </div>
+        <div class="pane" data-step="1" hidden>
+          <div class="brandmark">CENTINELA</div>
+          <div class="card">
+            <h4>Escribí el código</h4>
+            <p class="note">Lo mandamos al +54 9 11 5555-0182. Vence en 5 minutos.</p>
+            <div class="otp"><input id="o1" value="4" maxlength="1" aria-label="Dígito 1"><input id="o2" value="8" maxlength="1" aria-label="Dígito 2"><input id="o3" value="2" maxlength="1" aria-label="Dígito 3"><input id="o4" value="0" maxlength="1" aria-label="Dígito 4"><input id="o5" value="7" maxlength="1" aria-label="Dígito 5"><input id="o6" value="1" maxlength="1" aria-label="Dígito 6"></div>
+            <button class="primary" data-step-to="2">Entrar</button>
+            <button class="ghost small" data-step-to="0">Cambiar número</button>
+          </div>
+        </div>
+        <div class="pane" data-step="2" hidden>
+          <div class="ph-top" style="border:0;background:transparent;padding:6px 4px"><small>Hola, Alan</small><b>¿Cómo querés entrar?</b></div>
+          <div class="rolepick">
+            <button onclick="location.hash='administrador'"><b>Administrador</b><small>5 consorcios · 4 cosas para firmar</small></button>
+            <button onclick="location.hash='propietario'"><b>Propietario</b><small>Juncal 1830 · 3° A · expensas al día</small></button>
+          </div>
+          <p class="note">Ves esta pantalla porque tu número tiene dos roles. Quien tiene uno solo entra directo.</p>
+          <button class="ghost small" data-step-to="0">Salir</button>
+        </div>
+      </div>
+    </div>
+    <div class="why">
+      <div>
+        <h3>Ingreso</h3>
+        <h2>Un solo ingreso para todos</h2>
+      </div>
+      <p>Nadie elige su rol: el sistema lo sabe por el número de celular. El encargado, el vecino y el administrador entran por la misma puerta y cada uno ve su pantalla. Tocá los botones del teléfono para recorrer los pasos.</p>
+      <div class="panel">
+        <h3>Decisiones de diseño</h3>
+        <ul>
+          <li>Sin contraseñas: código por WhatsApp (o mail). Encargados y vecinos mayores no tienen que recordar nada.</li>
+          <li>Una persona puede tener varios roles (Alan es administrador y también propietario). Elige al entrar y puede cambiar desde su perfil.</li>
+          <li>El proveedor ocasional entra con el link de la OT que le llega por WhatsApp: ve solo esa orden y vence a las 72 h.</li>
+          <li>El administrador y el operador vuelven a confirmar con código cada pago o emisión de expensas.</li>
+          <li>El inquilino lo da de alta el propietario desde su perfil, con su número.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Link de proveedor sin cuenta</h3>
+        <div class="copy"><span>centinela.ar/ot/0416?k=7Gx2…</span><button class="small" data-toast="Link copiado (simulado)">Copiar</button></div>
+        <span class="note">Válido 72 h, solo para la OT-0416.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 1. OPERADOR ============ -->
+<section data-view="operador" hidden>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="rolehead">
+      <div class="who">
+        <h3>Rol 1 · Operador Centinela</h3>
+        <h1>Centro de operaciones</h1>
+        <p>Toda la cartera en una pantalla. Primero lo que quema: alarmas sin atender y su reloj de escalamiento.</p>
+      </div>
+      <div class="chips"><span class="chip acc">Guardia: Nico</span><span class="chip mono">sáb 07/11 16:39</span><span class="chip">5 consorcios · 63 equipos</span></div>
+    </div>
+    <div class="kpis">
+      <div class="stat crit"><span>Alarmas críticas</span><b class="num">1</b><small>Cabildo 2211</small></div>
+      <div class="stat warn"><span>Advertencias</span><b class="num">3</b><small>2 con OT</small></div>
+      <div class="stat trend"><span>Tendencias</span><b class="num">2</b><small>revisar esta semana</small></div>
+      <div class="stat"><span>OT abiertas</span><b class="num">7</b><small>2 esperan aprobación</small></div>
+      <div class="stat warn"><span>Nodos sin señal</span><b class="num">1</b><small>de 58</small></div>
+      <div class="stat ok"><span>Atendidas &lt; 2 h</span><b class="num">96%</b><small>últimos 30 días</small></div>
+    </div>
+    <div class="grid g-op">
+      <div class="panel">
+        <div class="panel-h"><h2>Cola de alarmas</h2><span class="note">Escala sola a las 2 h</span></div>
+        <div class="rows" id="op-alarms">
+          <div class="row sev crit"><span class="t">Caldera · presión 0,4 bar</span><span class="s">Cabildo 2211 · mín. 0,8 bar · sin agua caliente pisos 6 a 12</span><span class="r"><span class="pill crit mono">00:42 / 2:00</span><button class="small primary" data-ack>Tomar</button></span></div>
+          <div class="row sev warn"><span class="t">Bomba 2 · vibración 7,4 mm/s</span><span class="s">Rivadavia 4520 · zona C ISO 10816 · OT-0412 abierta</span><span class="r"><span class="pill warn">Con OT</span></span></div>
+          <div class="row sev warn"><span class="t">Tanque reserva · nivel 31%</span><span class="s">Gascón 715 · baja 6%/h con bombas en marcha</span><span class="r"><span class="pill warn mono">00:15 / 2:00</span><button class="small primary" data-ack>Tomar</button></span></div>
+          <div class="row sev warn"><span class="t">Nodo N-27 sin latido 3 h</span><span class="s">Juncal 1830 · termotanque · batería 3,41 V al último dato</span><span class="r"><span class="pill warn">Con OT</span></span></div>
+          <div class="row sev trend"><span class="t">Ascensor A · corriente de arranque +18%</span><span class="s">Corrientes 3412 · 30 días · avisar a la conservadora</span><span class="r"><span class="pill trend">Tendencia</span></span></div>
+          <div class="row sev trend"><span class="t">Termotanque 1 · 42 encendidos/día</span><span class="s">Rivadavia 4520 · normal 20 a 28 · posible termostato</span><span class="r"><span class="pill trend">Tendencia</span></span></div>
+        </div>
+      </div>
+      <div class="panel wide">
+        <div class="panel-h"><h2>Órdenes de trabajo</h2><button class="small" data-open-ot>+ Nueva OT</button></div>
+        <div class="kanban">
+          <div class="col"><h3>Nueva <span class="mono">1</span></h3>
+            <div class="ot"><span class="id">OT-0415</span><b>Revisar termostato</b><span>Rivadavia 4520 · Termotanque 1</span><span class="pill mut">Sin asignar</span></div>
+          </div>
+          <div class="col"><h3>Asignada <span class="mono">2</span></h3>
+            <div class="ot"><span class="id">OT-0414</span><b>Cambio batería N-27</b><span>Juncal 1830 · Centinela</span><span class="pill trend">Hoy 18 h</span></div>
+            <div class="ot"><span class="id">OT-0410</span><b>Limpieza tanques</b><span>Cabildo 2211 · Tanques Limpios SRL</span><span class="pill mut">Lun 09/11</span></div>
+          </div>
+          <div class="col"><h3>Presupuesto <span class="mono">2</span></h3>
+            <div class="ot"><span class="id">OT-0412</span><b>Rodamientos bomba 2</b><span>Rivadavia 4520 · Bombas Sur</span><span class="pill warn">Espera consejo</span></div>
+            <div class="ot"><span class="id">OT-0409</span><b>Membrana vaso expansión</b><span>Corrientes 3412 · Termo Norte</span><span class="pill warn">Espera admin.</span></div>
+          </div>
+          <div class="col"><h3>A verificar <span class="mono">2</span></h3>
+            <div class="ot"><span class="id">OT-0407</span><b>Flotante tanque</b><span>Gascón 715 · Plomería Díaz</span><span class="pill ok">Cerró proveedor</span></div>
+            <div class="ot"><span class="id">OT-0405</span><b>Purga caldera</b><span>Juncal 1830 · Termo Norte</span><span class="pill ok">Cerró proveedor</span></div>
+          </div>
+        </div>
+        <p class="note">“A verificar”: el proveedor cerró, falta que el encargado confirme y que el sensor vuelva a rango 24 h.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2>Salud de la red</h2><span class="note">LoRa 434,5 MHz</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Edificio</th><th>Gateway</th><th class="n">Nodos</th><th class="n">4G</th></tr></thead>
+          <tbody>
+            <tr><td>Rivadavia 4520</td><td><span class="pill ok">OK</span></td><td class="n">14/14</td><td class="n">−71 dBm</td></tr>
+            <tr><td>Juncal 1830</td><td><span class="pill ok">OK</span></td><td class="n">9/10</td><td class="n">−83 dBm</td></tr>
+            <tr><td>Cabildo 2211</td><td><span class="pill ok">OK</span></td><td class="n">12/12</td><td class="n">−77 dBm</td></tr>
+            <tr><td>Corrientes 3412</td><td><span class="pill ok">OK</span></td><td class="n">13/13</td><td class="n">−90 dBm</td></tr>
+            <tr><td>Gascón 715</td><td><span class="pill warn">Con batería</span></td><td class="n">9/9</td><td class="n">−79 dBm</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Gascón 715: corte de luz 15:52, el gateway sigue con su batería (quedan ~6 h). Avisado al encargado.</p>
+        <h3>Bitácora</h3>
+        <div class="rows">
+          <div class="row"><span class="t mono" style="font-weight:500;font-size:12px">16:21 · Alan</span><span class="s">Aprobó presupuesto OT-0412 y lo mandó al consejo</span></div>
+          <div class="row"><span class="t mono" style="font-weight:500;font-size:12px">15:58 · Sistema</span><span class="s">Alarma caldera Cabildo 2211 enviada a encargado (WhatsApp)</span></div>
+          <div class="row"><span class="t mono" style="font-weight:500;font-size:12px">15:10 · Bombas Sur</span><span class="s">Subió presupuesto OT-0412 con 2 fotos</span></div>
+        </div>
+      </div>
+    </div>
+
+    <form class="panel" id="ot-form" hidden>
+      <div class="panel-h"><h2>Nueva orden de trabajo</h2><span class="note">Se precarga desde la alarma si la abrís desde la cola</span></div>
+      <div class="form-grid">
+        <div class="field"><label for="ot-ed">Edificio</label><select id="ot-ed"><option>Cabildo 2211</option><option>Rivadavia 4520</option><option>Juncal 1830</option><option>Corrientes 3412</option><option>Gascón 715</option></select></div>
+        <div class="field"><label for="ot-eq">Equipo</label><select id="ot-eq"><option>Caldera central</option><option>Termotanque 1</option><option>Bomba presurizadora 1</option><option>Bomba presurizadora 2</option><option>Ascensor A</option><option>Tanque de reserva</option></select></div>
+        <div class="field"><label for="ot-tipo">Tipo</label><select id="ot-tipo"><option>Correctivo</option><option>Preventivo</option><option>Inspección legal</option></select></div>
+        <div class="field"><label for="ot-urg">Urgencia</label><select id="ot-urg"><option>Alta · hoy</option><option>Media · 48 h</option><option>Baja · programar</option></select></div>
+        <div class="field"><label for="ot-prov">Proveedor</label><select id="ot-prov"><option>Termo Norte · gasista matriculado · resp. 2,8 h</option><option>Calefacción Belgrano · resp. 5,1 h</option><option disabled>Gas Total SRL · ART vencida</option></select></div>
+        <div class="field"><label for="ot-tope">Tope sin aprobación</label><input id="ot-tope" value="$ 150.000" inputmode="numeric"></div>
+        <div class="field full"><label for="ot-desc">Qué pasa</label><textarea id="ot-desc">Presión de caldera 0,4 bar (mín. 0,8). Sin agua caliente pisos 6 a 12 desde las 15:58. Encargado confirmó manómetro en 0,5 bar. Revisar llenado automático y posibles pérdidas.</textarea></div>
+        <div class="field full" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="ot-data" checked style="width:auto"><label for="ot-data" style="font-weight:400;color:var(--fg)">Adjuntar curva de presión 7 días y fotos del encargado</label></div>
+      </div>
+      <div class="btnrow" style="justify-content:flex-end"><button type="button" class="ghost" data-close-ot style="flex:none">Cancelar</button><button type="submit" class="primary" style="flex:none">Crear y avisar al proveedor</button></div>
+      <p class="note">Solo aparecen proveedores del rubro con seguro, ART y matrícula al día. Si el presupuesto supera el tope, pasa al administrador.</p>
+    </form>
+
+    <div class="panel">
+      <div class="panel-h"><h2>Ficha del edificio</h2>
+        <div class="tabs" id="bld-tabs"><button aria-pressed="true" data-bld="0">Cabildo 2211</button><button aria-pressed="false" data-bld="1">Rivadavia 4520</button><button aria-pressed="false" data-bld="2">Gascón 715</button></div>
+      </div>
+      <p class="note" id="bld-meta"></p>
+      <div class="eqgrid" id="bld-eq"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. ADMINISTRADOR ============ -->
+<section data-view="administrador" hidden>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="rolehead">
+      <div class="who">
+        <h3>Rol 2 · Administrador matriculado</h3>
+        <h1>Mesa del administrador</h1>
+        <p>Lo que necesita su firma, ordenado por urgencia. Centinela ya preparó cada cosa; el administrador revisa y aprueba.</p>
+      </div>
+      <div class="chips"><span class="chip acc">Alan B. · RPA Mat. 0000 (ejemplo)</span><span class="chip">5 consorcios</span></div>
+    </div>
+    <div class="kpis k4">
+      <div class="stat warn"><span>Para firmar</span><b class="num" id="adm-count">4</b><small>presupuestos y pagos</small></div>
+      <div class="stat"><span>Cobranza noviembre</span><b class="num">61%</b><small>vence el 10/11</small></div>
+      <div class="stat crit"><span>Morosidad &gt; 3 meses</span><b class="num">5</b><small>unidades, $ 2,9 M</small></div>
+      <div class="stat warn"><span>Vencimientos 30 días</span><b class="num">6</b><small>1 vencido</small></div>
+    </div>
+    <div class="grid g3">
+      <div class="panel">
+        <div class="panel-h"><h2>Para aprobar</h2><span class="note">Tope sin consejo: $ 300.000</span></div>
+        <div class="rows" id="adm-approve">
+          <div class="row"><span class="t">OT-0409 · Membrana vaso de expansión</span><span class="s">Corrientes 3412 · Termo Norte · 2 presupuestos, eligió el menor</span><span class="r"><span class="num">$ 214.500</span><button class="small primary" data-approve>Aprobar</button></span></div>
+          <div class="row"><span class="t">Pago Ascensores Delta · octubre</span><span class="s">Abono conservación 4 consorcios · factura A 0004-00031288</span><span class="r"><span class="num">$ 1.128.000</span><button class="small primary" data-approve>Aprobar</button></span></div>
+          <div class="row"><span class="t">Sueldo encargado Gascón 715</span><span class="s">Escala FATERYH nov. · recibo listo para firma</span><span class="r"><span class="num">$ 1.247.300</span><button class="small primary" data-approve>Firmar</button></span></div>
+          <div class="row"><span class="t">Liquidación noviembre · Juncal 1830</span><span class="s">Borrador hecho por Centinela · 18 UF · variación +4,1%</span><span class="r"><span class="num">$ 6.902.000</span><button class="small" data-open-liq>Revisar</button></span></div>
+          <div class="row"><span class="t">OT-0412 · Rodamientos bomba 2</span><span class="s">Rivadavia 4520 · aprobado, falta conformidad del consejo</span><span class="r"><span class="num">$ 385.000</span><span class="pill warn">En consejo</span></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2>Expensas de noviembre</h2></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Consorcio</th><th>Estado</th><th class="n">Cobrado</th></tr></thead>
+          <tbody>
+            <tr><td>Rivadavia 4520<br><span class="note">42 UF</span></td><td><span class="pill ok">Emitida</span></td><td class="n">68%<div class="meter ok"><i style="width:68%"></i></div></td></tr>
+            <tr><td>Juncal 1830<br><span class="note">18 UF</span></td><td><span class="pill warn">Borrador</span></td><td class="n">·</td></tr>
+            <tr><td>Cabildo 2211<br><span class="note">36 UF</span></td><td><span class="pill ok">Emitida</span></td><td class="n">57%<div class="meter"><i style="width:57%"></i></div></td></tr>
+            <tr><td>Corrientes 3412<br><span class="note">30 UF + 2 locales</span></td><td><span class="pill ok">Emitida</span></td><td class="n">63%<div class="meter"><i style="width:63%"></i></div></td></tr>
+            <tr><td>Gascón 715<br><span class="note">14 UF</span></td><td><span class="pill ok">Emitida</span></td><td class="n">50%<div class="meter warn"><i style="width:50%"></i></div></td></tr>
+          </tbody>
+        </table></div>
+        <h3>Reclamos escalados</h3>
+        <div class="rows">
+          <div class="row"><span class="t">Filtración desde 8°B a 7°B</span><span class="s">Cabildo 2211 · 9 días · pide intervención del administrador</span><span class="r"><button class="small" data-toast="Abre el reclamo con fotos e historial">Ver</button></span></div>
+          <div class="row"><span class="t">Ruido de bomba de noche</span><span class="s">Rivadavia 4520 · vinculado a OT-0412</span><span class="r"><span class="pill mut">Vinculado</span></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2>Vencimientos legales</h2><span class="note">CABA</span></div>
+        <div class="rows">
+          <div class="row sev crit"><span class="t">Limpieza y desinfección de tanques</span><span class="s">Cabildo 2211 · Ley 6040, semestral · OT-0410 el 09/11</span><span class="r"><span class="pill crit">Vencido 3 d</span></span></div>
+          <div class="row sev warn"><span class="t">DDJJ anual RPA</span><span class="s">Todos · Ley 941</span><span class="r"><span class="pill warn">12 días</span></span></div>
+          <div class="row sev warn"><span class="t">Medición de puesta a tierra</span><span class="s">Corrientes 3412 · Res. SRT 900/15, anual</span><span class="r"><span class="pill warn">18 días</span></span></div>
+          <div class="row sev trend"><span class="t">Recarga de matafuegos</span><span class="s">Gascón 715 · 6 equipos, anual</span><span class="r"><span class="pill trend">24 días</span></span></div>
+          <div class="row sev trend"><span class="t">Libro de inspección ascensores</span><span class="s">Juncal 1830 · firma mensual de la conservadora</span><span class="r"><span class="pill trend">27 días</span></span></div>
+          <div class="row sev ok"><span class="t">Seguro integral de consorcio</span><span class="s">Rivadavia 4520 · renueva 03/2027</span><span class="r"><span class="pill ok">Al día</span></span></div>
+        </div>
+        <h3>Asambleas</h3>
+        <div class="rows">
+          <div class="row"><span class="t">Ordinaria anual · Corrientes 3412</span><span class="s">Jue 26/11 19 h, SUM · orden del día listo para convocar</span><span class="r"><button class="small" data-toast="Convocatoria enviada a 32 unidades (simulado)">Convocar</button></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="liq" hidden>
+      <div class="panel-h"><div><h3>Borrador preparado por Centinela</h3><h2>Liquidación noviembre 2026 · Juncal 1830</h2></div><div class="btnrow"><button data-close-liq>Cerrar</button><button class="primary" data-liq-emit>Emitir y enviar a 18 UF</button></div></div>
+      <div class="grid g2">
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <h3>Gastos del mes</h3>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>Rubro</th><th class="n">Noviembre</th><th class="n">vs. oct.</th></tr></thead>
+            <tbody>
+              <tr><td>Sueldos y cargas sociales<br><span class="note">Encargado · escala FATERYH, paritaria +3,5%</span></td><td class="n">2.180.000</td><td class="n">+3,5%</td></tr>
+              <tr><td>Servicios públicos<br><span class="note">AySA, luz espacios comunes, gas caldera</span></td><td class="n">742.000</td><td class="n">+6,2%</td></tr>
+              <tr><td>Abonos de mantenimiento<br><span class="note">Ascensores, bombas, matafuegos</span></td><td class="n">568.000</td><td class="n">0,0%</td></tr>
+              <tr><td>Reparaciones<br><span class="note">OT-0405 purga caldera · OT-0403 válvula</span></td><td class="n">244.500</td><td class="n">+38%</td></tr>
+              <tr><td>Honorarios de administración</td><td class="n">520.000</td><td class="n">0,0%</td></tr>
+              <tr><td>Seguro integral de consorcio</td><td class="n">212.000</td><td class="n">0,0%</td></tr>
+              <tr><td>Monitoreo Centinela</td><td class="n">165.000</td><td class="n">0,0%</td></tr>
+              <tr><td>Limpieza y varios</td><td class="n">89.000</td><td class="n">−12%</td></tr>
+              <tr><td>Gastos bancarios e impuestos</td><td class="n">61.500</td><td class="n">+2,0%</td></tr>
+              <tr><td><b>Subtotal ordinarias</b></td><td class="n"><b>4.782.000</b></td><td class="n"></td></tr>
+              <tr><td>Fondo de reserva (10%)</td><td class="n">478.200</td><td class="n"></td></tr>
+              <tr><td>Extraordinaria · pintura de frente, cuota 3 de 6</td><td class="n">1.641.800</td><td class="n"></td></tr>
+              <tr><td><b>Total a prorratear</b></td><td class="n"><b>6.902.000</b></td><td class="n"><b>+4,1%</b></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <h3>Prorrateo por unidad (6 de 18)</h3>
+          <div class="tbl-wrap"><table>
+            <thead><tr><th>UF</th><th>Unidad</th><th class="n">%</th><th class="n">Expensa</th><th>Saldo ant.</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">01</td><td>PB A</td><td class="n">4,20</td><td class="n">289.884</td><td><span class="pill ok">Al día</span></td></tr>
+              <tr><td class="mono">05</td><td>2° A</td><td class="n">5,85</td><td class="n">403.767</td><td><span class="pill ok">Al día</span></td></tr>
+              <tr><td class="mono">06</td><td>2° B</td><td class="n">5,40</td><td class="n">372.708</td><td><span class="pill crit">3 meses</span></td></tr>
+              <tr><td class="mono">09</td><td>3° A</td><td class="n">5,85</td><td class="n">403.767</td><td><span class="pill ok">Al día</span></td></tr>
+              <tr><td class="mono">14</td><td>6° B</td><td class="n">5,40</td><td class="n">372.708</td><td><span class="pill warn">1 mes</span></td></tr>
+              <tr><td class="mono">18</td><td>PH</td><td class="n">7,90</td><td class="n">545.258</td><td><span class="pill ok">Al día</span></td></tr>
+            </tbody>
+          </table></div>
+          <div class="panel" style="background:var(--sunk);border:0;gap:6px">
+            <h3>Controles automáticos</h3>
+            <span><span class="dot ok"></span> Porcentuales suman 100,00%</span>
+            <span><span class="dot ok"></span> Cada gasto tiene comprobante adjunto (23 de 23)</span>
+            <span><span class="dot ok"></span> Sueldo coincide con la escala FATERYH vigente</span>
+            <span><span class="dot warn"></span> Reparaciones +38%: explicado por OT-0405 (caldera)</span>
+          </div>
+          <p class="note">Al emitir: sale el aviso por WhatsApp y mail a cada unidad, con su cupón, CBU y QR. Como sale después del 1°, vence el 16/11 en lugar del 10/11. Interés por mora según reglamento.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. CONSEJO ============ -->
+<section data-view="consejo" hidden>
+  <div class="dev">
+    <div class="phone" aria-label="Pantalla del consejo de propietarios">
+      <div class="ph-top"><small>Consejo · Rivadavia 4520</small><b>Hola, Marta</b></div>
+      <div class="ph-body">
+        <div class="pane" data-pane="0">
+        <div class="card alertw" id="cons-card">
+          <h3>Para tu conformidad</h3>
+          <h4>Cambio de rodamientos, bomba 2</h4>
+          <p class="note" style="color:var(--fg)">Bombas Sur · $ 385.000 · aprobado por el administrador. Supera el tope de $ 300.000 del reglamento.</p>
+          <svg class="spark" viewBox="0 0 300 56" preserveAspectRatio="none" aria-label="Vibración de la bomba 2, últimos 30 días, subiendo de 4,8 a 7,4 mm/s">
+            <line x1="0" y1="14" x2="300" y2="14" stroke="var(--warn)" stroke-dasharray="4 3" stroke-width="1"/>
+            <path d="M0 40 L30 41 L60 39 L90 40 L120 38 L150 36 L180 33 L210 28 L240 22 L270 17 L300 10 L300 56 L0 56 Z" fill="var(--warn-soft)"/>
+            <path d="M0 40 L30 41 L60 39 L90 40 L120 38 L150 36 L180 33 L210 28 L240 22 L270 17 L300 10" fill="none" stroke="var(--warn)" stroke-width="2"/>
+            <circle cx="297" cy="10" r="3.5" fill="var(--warn)"/>
+          </svg>
+          <span class="note">Vibración 30 días: de 4,8 a 7,4 mm/s. Línea punteada = alerta (7,1).</span>
+          <div class="btnrow"><button class="primary" data-consent>Doy conformidad</button><button data-toast="Se le pide al administrador un segundo presupuesto">Pedir otro presupuesto</button></div>
+        </div>
+        <div class="card">
+          <h3>Caja del consorcio</h3>
+          <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="big num">$ 4,21 M</span><span class="note">saldo hoy</span></div>
+          <div class="status-grid">
+            <div><span class="note">Ingresos nov.</span><b class="num">$ 8,95 M</b></div>
+            <div><span class="note">Egresos nov.</span><b class="num">$ 6,12 M</b></div>
+            <div><span class="note">Fondo de reserva</span><b class="num">$ 3,40 M</b></div>
+            <div><span class="note">Deuda vecinos</span><b class="num">$ 1,07 M</b></div>
+          </div>
+          <button data-toast="Abre la rendición de octubre con comprobantes">Ver rendición de octubre</button>
+        </div>
+        <div class="card">
+          <h3>Equipos del edificio</h3>
+          <div class="rows">
+            <div class="row"><span class="t">Bomba 2</span><span class="s">Vibración alta, OT en curso</span><span class="r"><span class="pill warn">Atención</span></span></div>
+            <div class="row"><span class="t">Termotanque 1</span><span class="s">Enciende de más, se revisa</span><span class="r"><span class="pill trend">Tendencia</span></span></div>
+            <div class="row"><span class="t">Otros 12 equipos</span><span class="s">Ascensores, tanques, caldera</span><span class="r"><span class="pill ok">Normal</span></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Cumplimiento legal</h3>
+          <div class="meter ok"><i style="width:92%"></i></div>
+          <span class="note">11 de 12 obligaciones al día. Próxima: DDJJ RPA en 12 días.</span>
+        </div>
+        </div>
+        <div class="pane" data-pane="1" hidden>
+          <h3>Esperan tu conformidad</h3>
+          <div class="card"><h4>Rodamientos bomba 2</h4><span class="note">Bombas Sur · $ 385.000 · aprobado por Alan el 07/11</span><button onclick="document.querySelector('#consejo [data-phnav] button').click()">Ver con datos del sensor</button></div>
+          <h3>Historial</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Pintura de frente</span><span class="s">Asamblea 08/2026 · 6 cuotas</span><span class="r"><span class="num">$ 9,85 M</span><span class="pill ok">Aprobado</span></span></div>
+            <div class="row"><span class="t">Cambio de bomba de pozo</span><span class="s">Conformidad Marta y Jorge · 14/09</span><span class="r"><span class="num">$ 612.000</span><span class="pill ok">Aprobado</span></span></div>
+            <div class="row"><span class="t">Portero eléctrico</span><span class="s">Pedido de segundo presupuesto · 02/08</span><span class="r"><span class="num">$ 455.000</span><span class="pill mut">Rechazado</span></span></div>
+          </div></div>
+          <p class="note">El tope sin consejo ($ 300.000) lo fijó la asamblea del 12/08/2026.</p>
+        </div>
+        <div class="pane" data-pane="2" hidden>
+          <h3>Egresos de octubre</h3>
+          <div class="card"><div class="bars">
+            <div class="b"><span>Sueldos y cargas</span><span class="num">$ 2,61 M</span><div class="meter"><i style="width:100%"></i></div></div>
+            <div class="b"><span>Servicios públicos</span><span class="num">$ 1,12 M</span><div class="meter"><i style="width:43%"></i></div></div>
+            <div class="b"><span>Abonos de mantenimiento</span><span class="num">$ 0,84 M</span><div class="meter"><i style="width:32%"></i></div></div>
+            <div class="b"><span>Honorarios administración</span><span class="num">$ 0,68 M</span><div class="meter"><i style="width:26%"></i></div></div>
+            <div class="b"><span>Reparaciones</span><span class="num">$ 0,41 M</span><div class="meter warn"><i style="width:16%"></i></div></div>
+            <div class="b"><span>Seguros, banco y varios</span><span class="num">$ 0,46 M</span><div class="meter"><i style="width:18%"></i></div></div>
+          </div></div>
+          <h3>Últimos movimientos</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Ascensores Delta</span><span class="s">06/11 · abono octubre</span><span class="r"><span class="num">−$ 282.000</span></span></div>
+            <div class="row"><span class="t">Cobranza expensas</span><span class="s">06/11 · 9 pagos</span><span class="r"><span class="num" style="color:var(--ok)">+$ 1.874.300</span></span></div>
+            <div class="row"><span class="t">AySA</span><span class="s">04/11 · bimestre 5</span><span class="r"><span class="num">−$ 318.600</span></span></div>
+          </div></div>
+          <p class="note">Cada movimiento sale del extracto bancario y tiene su comprobante.</p>
+        </div>
+        <div class="pane" data-pane="3" hidden>
+          <h3>Documentos</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Rendición de cuentas · octubre</span><span class="s">PDF · 14 páginas con comprobantes</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+            <div class="row"><span class="t">Extracto bancario · octubre</span><span class="s">Banco Ciudad · cuenta del consorcio</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+            <div class="row"><span class="t">Acta asamblea 12/08/2026</span><span class="s">Firmada por el consejo</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+            <div class="row"><span class="t">Certificado limpieza de tanques</span><span class="s">Ley 6040 · 05/2026</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+            <div class="row"><span class="t">Reglamento de copropiedad</span><span class="s">Escritura 1987</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+          </div></div>
+        </div>
+      </div>
+      <div class="ph-nav" data-phnav>
+        <button aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9H4z"/></svg>Inicio</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12l4 4 10-10"/></svg>Aprobar</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Cuentas</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z M14 3v5h5"/></svg>Docs</button>
+      </div>
+    </div>
+    <div class="why">
+      <div>
+        <h3>Rol 3 · Consejo de propietarios</h3>
+        <h2>Control sin tener que pedir nada</h2>
+      </div>
+      <p>El consejo no administra: controla. Su pantalla responde tres preguntas: ¿hay algo que tenga que aprobar?, ¿cómo está la plata?, ¿cómo están los equipos?</p>
+      <div class="panel">
+        <h3>Decisiones de diseño</h3>
+        <ul>
+          <li>Lo que espera su conformidad va arriba, con el dato que lo justifica (la curva de vibración), no solo el monto.</li>
+          <li>El tope sin consejo lo fija el reglamento o la asamblea; se configura por consorcio.</li>
+          <li>Ve la caja en el momento, sin esperar la rendición mensual. Es el principal argumento contra el administrador tradicional.</li>
+          <li>Solo lectura en todo lo demás.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Avisos que recibe</h3>
+        <ul>
+          <li>WhatsApp cuando hay un gasto para su conformidad.</li>
+          <li>Resumen mensual con la rendición.</li>
+          <li>Alarmas críticas del edificio (opcional).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. ENCARGADO ============ -->
+<section data-view="encargado" hidden>
+  <div class="dev">
+    <div class="phone" aria-label="Pantalla del encargado">
+      <div class="ph-top"><small>Encargado · Cabildo 2211</small><b>Sábado 7 de noviembre</b></div>
+      <div class="ph-body">
+        <div class="pane" data-pane="0">
+        <div class="card alert" id="enc-alert">
+          <h3 style="color:var(--crit)">Alarma · hace 42 min</h3>
+          <h4>Caldera: presión baja, 0,4 bar</h4>
+          <p class="note" style="color:var(--fg)">Mínimo 0,8 bar. Sin agua caliente pisos 6 a 12. Si no respondés, a las 2 h se avisa al administrador.</p>
+          <div class="btnrow"><button class="primary" data-enc="Estoy yendo">Estoy yendo</button><button data-enc="Confirmado con foto">Confirmo con foto</button></div>
+          <button class="ghost small" data-toast="Abre la guía: verificar manómetro, llave de llenado, pérdidas visibles">Qué revisar</button>
+        </div>
+        <div class="card">
+          <div class="panel-h"><h3>Ronda de hoy</h3><span class="note mono" id="enc-prog">1/5</span></div>
+          <div>
+            <div class="check"><input type="checkbox" id="c1" checked><label for="c1"><span>Sala de bombas: ruido y pérdidas</span><small>08:15 · sin novedad</small></label></div>
+            <div class="check"><input type="checkbox" id="c2"><label for="c2"><span>Manómetro de caldera</span><small>Anotar lectura. El sensor dice 0,4 bar</small></label></div>
+            <div class="check"><input type="checkbox" id="c3"><label for="c3"><span>Tapa de tanque cerrada</span><small>Foto obligatoria</small></label></div>
+            <div class="check"><input type="checkbox" id="c4"><label for="c4"><span>Luces de emergencia</span><small>Probar escalera y palier PB</small></label></div>
+            <div class="check"><input type="checkbox" id="c5"><label for="c5"><span>Sala de máquinas ascensor</span><small>Puerta con llave, sin objetos</small></label></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Visitas esperadas</h3>
+          <div class="rows">
+            <div class="row"><span class="t">Ascensores Delta</span><span class="s">Hoy 17 h · abono mensual · firma libro</span><span class="r"><span class="pill trend">17:00</span></span></div>
+            <div class="row"><span class="t">Tanques Limpios SRL</span><span class="s">Lun 9/11 8 h · avisar corte de agua 8 a 14 h</span><span class="r"><button class="small" data-toast="Aviso de corte enviado a 36 unidades (simulado)">Avisar vecinos</button></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Reportar un problema</h3>
+          <div class="quick">
+            <button data-toast="Reporte de agua: sacá una foto y listo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3s6 7 6 11a6 6 0 01-12 0c0-4 6-11 6-11z"/></svg>Agua</button>
+            <button data-toast="Reporte de electricidad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Luz</button>
+            <button data-toast="Reporte de ascensor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 9l3-3 3 3M9 15l3 3 3-3"/></svg>Ascensor</button>
+            <button data-toast="Reporte de gas: si huele a gas, cortá la llave y llamá al 0800-333-0700"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c3 4 5 6 5 10a5 5 0 01-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z"/></svg>Gas</button>
+            <button data-toast="Reporte de limpieza o residuos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Limpieza</button>
+            <button data-toast="Otro problema: describilo con una foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.5"/></svg>Otro</button>
+          </div>
+        </div>
+        </div>
+        <div class="pane" data-pane="1" hidden>
+          <h3>Equipos ahora</h3>
+          <div class="status-grid">
+            <div><b><span class="dot crit"></span>Caldera</b><span class="note mono">0,4 bar · 61 °C</span></div>
+            <div><b><span class="dot ok"></span>Termotanques</b><span class="note mono">2 de 2 · 58 °C</span></div>
+            <div><b><span class="dot ok"></span>Bomba 1</b><span class="note mono">3,2 mm/s · 5,4 A</span></div>
+            <div><b><span class="dot ok"></span>Bomba 2</b><span class="note mono">parada (alterna)</span></div>
+            <div><b><span class="dot ok"></span>Ascensor A</b><span class="note mono">212 viajes hoy</span></div>
+            <div><b><span class="dot ok"></span>Ascensor B</b><span class="note mono">187 viajes hoy</span></div>
+            <div><b><span class="dot ok"></span>Tanque reserva</b><span class="note mono">82%</span></div>
+            <div><b><span class="dot ok"></span>Tanque cisterna</b><span class="note mono">91%</span></div>
+          </div>
+          <h3>Últimas alarmas</h3>
+          <div class="card"><div class="rows">
+            <div class="row sev crit"><span class="t">Caldera · presión baja</span><span class="s">Hoy 15:58 · abierta</span><span class="r"><span class="pill crit">Abierta</span></span></div>
+            <div class="row sev warn"><span class="t">Tanque reserva bajo 30%</span><span class="s">02/11 · flotante trabado · lo destrabaste vos</span><span class="r"><span class="pill ok">Resuelta</span></span></div>
+            <div class="row sev trend"><span class="t">Bomba 1 · arranques seguidos</span><span class="s">27/10 · pérdida en canilla 4° A</span><span class="r"><span class="pill ok">Resuelta</span></span></div>
+          </div></div>
+        </div>
+        <div class="pane" data-pane="2" hidden>
+          <h3>Para verificar</h3>
+          <div class="card">
+            <h4>OT-0398 · Válvula de retención bomba 1</h4>
+            <span class="note">Plomería Díaz cerró ayer con 3 fotos. ¿Quedó bien?</span>
+            <div class="btnrow"><button class="primary" data-toast="Verificada. La OT pasa a cerrada">Sí, quedó bien</button><button data-toast="Se reabre la OT y se avisa al proveedor">No, sigue mal</button></div>
+          </div>
+          <h3>Próximos trabajos</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Limpieza de tanques</span><span class="s">Lun 9/11 8 h · Tanques Limpios SRL · tener llave de azotea y cortar bombas</span><span class="r"><span class="pill trend">Lun</span></span></div>
+            <div class="row"><span class="t">Recarga de matafuegos</span><span class="s">Jue 12/11 · retirar los 8 equipos y poner los de reemplazo</span><span class="r"><span class="pill mut">Jue</span></span></div>
+            <div class="row"><span class="t">Purga de radiadores</span><span class="s">Preventivo mensual · lo hacés vos · guía en 6 pasos</span><span class="r"><button class="small" data-toast="Abre la guía con fotos">Guía</button></span></div>
+          </div></div>
+        </div>
+        <div class="pane" data-pane="3" hidden>
+          <h3>Reclamos asignados a vos</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Luz palier 4° quemada</span><span class="s">R-1190 · 4° B · hoy 11:20</span><span class="r"><button class="small" data-toast="Reclamo resuelto. Se avisa al vecino">Resuelto</button></span></div>
+            <div class="row"><span class="t">Puerta cochera no cierra sola</span><span class="s">R-1186 · 1° A · ayer</span><span class="r"><button class="small" data-toast="Se pasa al operador para crear OT">Necesita técnico</button></span></div>
+          </div></div>
+          <h3>Mandar un aviso</h3>
+          <div class="card">
+            <div class="tabs"><button class="small" data-tpl="Mañana lunes 9/11 de 8 a 14 h se corta el agua por limpieza de tanques. Junten agua hoy.">Corte de agua</button><button class="small" data-tpl="El ascensor A está fuera de servicio. Ya avisamos a la conservadora. Usen el B.">Ascensor</button><button class="small" data-tpl="El jueves a las 10 h se fumiga palieres y cocheras. Dejen libres las bauleras.">Fumigación</button></div>
+            <div class="field"><label for="enc-msg">Mensaje</label><textarea id="enc-msg">Mañana lunes 9/11 de 8 a 14 h se corta el agua por limpieza de tanques. Junten agua hoy.</textarea></div>
+            <button class="primary" data-toast="Aviso enviado a 36 unidades por WhatsApp (simulado)">Enviar a todo el edificio</button>
+          </div>
+        </div>
+      </div>
+      <div class="ph-nav" data-phnav>
+        <button aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9H4z"/></svg>Hoy</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a6 6 0 016 6c0 5 2 7 2 7H4s2-2 2-7a6 6 0 016-6zM10 20h4"/></svg>Alarmas</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4l6 6-9 9H5v-6z"/></svg>Trabajos</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v10H8l-4 4z"/></svg>Vecinos</button>
+      </div>
+    </div>
+    <div class="why">
+      <div>
+        <h3>Rol 4 · Encargado</h3>
+        <h2>Los ojos en el lugar</h2>
+      </div>
+      <p>El sensor detecta, el encargado confirma. Su pantalla es para usar con una mano, parado en la sala de máquinas, con guantes.</p>
+      <div class="panel">
+        <h3>Decisiones de diseño</h3>
+        <ul>
+          <li>Botones grandes y pocos. Cada alarma tiene dos respuestas: “Estoy yendo” y “Confirmo con foto”.</li>
+          <li>La ronda cruza lo que anota con lo que mide el sensor. Si el manómetro dice 1,2 y el sensor 0,4, el problema es el sensor.</li>
+          <li>Reportar algo toma dos toques y una foto. Centinela lo convierte en reclamo u OT.</li>
+          <li>No ve dinero, ni deudas de vecinos, ni sueldos de otros.</li>
+          <li>Funciona también solo por WhatsApp para encargados que no quieran otra app.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Escalamiento</h3>
+        <ol>
+          <li>Encargado (WhatsApp, al instante)</li>
+          <li>Operador Centinela de guardia (a los 30 min)</li>
+          <li>Administrador (a las 2 h)</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. PROVEEDOR ============ -->
+<section data-view="proveedor" hidden>
+  <div class="dev">
+    <div class="phone" aria-label="Pantalla del proveedor">
+      <div class="ph-top"><small>Proveedor · Bombas Sur</small><b>Órdenes de trabajo</b></div>
+      <div class="ph-body">
+        <div class="pane" data-pane="0">
+        <div class="card" id="prov-new">
+          <div class="panel-h"><span class="pill warn">Nueva · urgencia media</span><span class="note mono">OT-0416</span></div>
+          <h4>Bomba presurizadora no arranca en automático</h4>
+          <p class="note">Gascón 715 · tanque de reserva bajando 6%/h. Encargado: Rubén, presente hasta las 21 h.</p>
+          <div class="btnrow"><button class="primary" data-prov-accept>Acepto, voy hoy</button><button data-toast="Se reasigna a otro proveedor del padrón">No puedo</button></div>
+        </div>
+        <div class="card">
+          <div class="panel-h"><span class="pill trend">Presupuestada</span><span class="note mono">OT-0412</span></div>
+          <h4>Rodamientos bomba 2 · Rivadavia 4520</h4>
+          <svg class="spark" viewBox="0 0 300 56" preserveAspectRatio="none" aria-label="Vibración 30 días">
+            <line x1="0" y1="14" x2="300" y2="14" stroke="var(--warn)" stroke-dasharray="4 3" stroke-width="1"/>
+            <path d="M0 40 L30 41 L60 39 L90 40 L120 38 L150 36 L180 33 L210 28 L240 22 L270 17 L300 10" fill="none" stroke="var(--warn)" stroke-width="2"/>
+            <circle cx="297" cy="10" r="3.5" fill="var(--warn)"/>
+          </svg>
+          <div class="status-grid">
+            <div><span class="note">Vibración</span><b class="num">7,4 mm/s</b></div>
+            <div><span class="note">Corriente</span><b class="num">6,1 A</b></div>
+            <div><span class="note">Temp. carcasa</span><b class="num">58 °C</b></div>
+            <div><span class="note">Horas de uso</span><b class="num">11.240 h</b></div>
+          </div>
+          <span class="note">Tu presupuesto $ 385.000 · aprobado por el administrador, espera conformidad del consejo.</span>
+        </div>
+        <div class="card">
+          <div class="panel-h"><span class="pill ok">Para cerrar</span><span class="note mono">OT-0407</span></div>
+          <h4>Flotante tanque · Gascón 715</h4>
+          <div class="btnrow"><button data-toast="Cámara: fotos antes y después">+ Fotos</button><button data-toast="Cargá el remito firmado por el encargado">+ Remito</button><button class="primary" data-toast="OT cerrada. El encargado debe verificar">Cerrar</button></div>
+        </div>
+        <div class="card">
+          <h3>Mis cobros</h3>
+          <div class="rows">
+            <div class="row"><span class="t">Fac. A 0002-00000871</span><span class="s">OT-0398 · Cabildo 2211</span><span class="r"><span class="num">$ 142.000</span><span class="pill ok">Pagada 04/11</span></span></div>
+            <div class="row"><span class="t">Fac. A 0002-00000877</span><span class="s">OT-0403 · Juncal 1830</span><span class="r"><span class="num">$ 96.500</span><span class="pill trend">Paga 12/11</span></span></div>
+          </div>
+        </div>
+        <div class="card alertw">
+          <h3 style="color:var(--warn)">Documentación</h3>
+          <p class="note" style="color:var(--fg)">Tu póliza de ART vence en 9 días. Sin ART vigente no se te asignan órdenes nuevas.</p>
+          <button data-toast="Subí el certificado de ART en PDF o foto">Subir ART</button>
+        </div>
+        </div>
+        <div class="pane" data-pane="1" hidden>
+          <h3>Hoy, sábado 7</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t mono">18:30</span><span class="s">OT-0416 · Gascón 715 · bomba presurizadora · Rubén te abre</span></div>
+          </div></div>
+          <h3>Lunes 9</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t mono">09:00</span><span class="s">OT-0412 · Rivadavia 4520 · rodamientos bomba 2 (si el consejo aprueba)</span></div>
+            <div class="row"><span class="t mono">14:00</span><span class="s">Preventivo trimestral · Corrientes 3412 · bombas 1 y 2</span></div>
+          </div></div>
+          <h3>Martes 10</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t mono">10:00</span><span class="s">Preventivo trimestral · Cabildo 2211 · bombas y presostato</span></div>
+          </div></div>
+          <button data-toast="Marcá días en que no podés tomar trabajos">Bloquear días</button>
+        </div>
+        <div class="pane" data-pane="2" hidden>
+          <div class="card">
+            <h3>A cobrar</h3>
+            <span class="big num">$ 96.500</span>
+            <span class="note">1 factura aprobada · pago el jueves 12/11 por transferencia</span>
+          </div>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Fac. A 0002-00000877</span><span class="s">OT-0403 · Juncal 1830 · aprobada 06/11</span><span class="r"><span class="num">$ 96.500</span><span class="pill trend">Paga 12/11</span></span></div>
+            <div class="row"><span class="t">Fac. A 0002-00000871</span><span class="s">OT-0398 · Cabildo 2211</span><span class="r"><span class="num">$ 142.000</span><span class="pill ok">Pagada 04/11</span></span></div>
+            <div class="row"><span class="t">Fac. A 0002-00000860</span><span class="s">OT-0381 · Rivadavia 4520</span><span class="r"><span class="num">$ 210.000</span><span class="pill ok">Pagada 21/10</span></span></div>
+          </div></div>
+          <button class="primary" data-toast="Elegí la OT cerrada y subí la factura (PDF de AFIP)">Subir factura</button>
+          <p class="note">Solo se puede facturar una OT cerrada y verificada. El monto no puede superar el presupuesto aprobado.</p>
+        </div>
+        <div class="pane" data-pane="3" hidden>
+          <div class="card">
+            <h4>Bombas Sur · CUIT 30-71234567-8</h4>
+            <span class="note">Bombas, presurizadoras, tanques · Zona sur y centro de CABA</span>
+          </div>
+          <h3>Documentación</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">ART</span><span class="s">Vence 16/11/2026</span><span class="r"><span class="pill warn">9 días</span></span></div>
+            <div class="row"><span class="t">Seguro de responsabilidad civil</span><span class="s">Vence 03/2027</span><span class="r"><span class="pill ok">Vigente</span></span></div>
+            <div class="row"><span class="t">Constancia de inscripción AFIP</span><span class="s">Responsable inscripto</span><span class="r"><span class="pill ok">OK</span></span></div>
+            <div class="row"><span class="t">Nómina de técnicos</span><span class="s">3 técnicos con DNI y ART</span><span class="r"><span class="pill ok">OK</span></span></div>
+          </div></div>
+          <h3>Tu desempeño (90 días)</h3>
+          <div class="status-grid">
+            <div><span class="note">Respuesta</span><b class="num">2,4 h</b></div>
+            <div><span class="note">Cierre</span><b class="num">1,6 días</b></div>
+            <div><span class="note">Reincidencia</span><b class="num">4%</b></div>
+            <div><span class="note">Desvío vs. presupuesto</span><b class="num">0%</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="ph-nav" data-phnav>
+        <button aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4l6 6-9 9H5v-6z"/></svg>Órdenes</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16v12H4zM4 7l8 6 8-6"/></svg>Cobros</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>Perfil</button>
+      </div>
+    </div>
+    <div class="why">
+      <div>
+        <h3>Rol 5 · Proveedor</h3>
+        <h2>Llegar sabiendo qué tiene el equipo</h2>
+      </div>
+      <p>La diferencia con un llamado telefónico: el técnico ve la curva del sensor antes de salir, así lleva el repuesto correcto. Y sabe cuándo cobra.</p>
+      <div class="panel">
+        <h3>Decisiones de diseño</h3>
+        <ul>
+          <li>Cada OT pasa por cinco estados: nueva, aceptada, presupuestada, en curso, cerrada. El proveedor mueve los suyos; Centinela y el administrador aprueban.</li>
+          <li>Cerrar exige fotos y remito. Sin eso la OT no pasa a “A verificar”.</li>
+          <li>Si no tiene seguro, ART o matrícula al día (AGC, RIT de ascensores, gasista matriculado), el sistema no le asigna órdenes.</li>
+          <li>Un plomero ocasional puede trabajar con un link de WhatsApp, sin crear cuenta.</li>
+          <li>Solo ve sus órdenes y sus facturas, nunca el resto del edificio.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Qué mide Centinela del proveedor</h3>
+        <ul>
+          <li>Tiempo de respuesta y de cierre por OT</li>
+          <li>Reincidencias: el mismo equipo falla otra vez antes de 30 días</li>
+          <li>Desvío entre presupuesto y factura</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. PROPIETARIO / INQUILINO ============ -->
+<section data-view="propietario" hidden>
+  <div class="dev">
+    <div class="phone" aria-label="Pantalla del propietario o inquilino">
+      <div class="ph-top">
+        <div class="panel-h"><small>Rivadavia 4520 · 7° B</small>
+          <div class="segbtn" id="pi-seg"><button aria-pressed="true" data-pi="prop">Propietario</button><button aria-pressed="false" data-pi="inq">Inquilino</button></div>
+        </div>
+        <b id="pi-hello">Hola, Laura</b>
+      </div>
+      <div class="ph-body">
+        <div class="pane" data-pane="0">
+        <div class="card">
+          <h3>Expensas de noviembre</h3>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><span class="big num" id="pi-amount">$ 187.430</span><span class="pill warn">Vence 10/11</span></div>
+          <div class="note" id="pi-detail">Ordinarias $ 162.900 · Extraordinarias (impermeabilización) $ 24.530</div>
+          <div class="btnrow"><button class="primary" data-toast="Pago simulado: elegirías transferencia, débito o QR">Pagar</button><button data-toast="Abre la liquidación completa con el detalle de gastos">Ver detalle</button></div>
+        </div>
+        <div class="card">
+          <h3>Cómo está el edificio</h3>
+          <div class="status-grid">
+            <div><b><span class="dot ok"></span>Agua caliente</b><span class="note">Normal</span></div>
+            <div><b><span class="dot ok"></span>Ascensores</b><span class="note">A y B funcionando</span></div>
+            <div><b><span class="dot ok"></span>Agua en tanque</b><span class="note">78%</span></div>
+            <div><b><span class="dot warn"></span>Bomba 2</b><span class="note">En mantenimiento. El agua no se corta</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Avisos</h3>
+          <div class="rows">
+            <div class="row"><span class="t">Corte de agua lunes 9/11, 8 a 14 h</span><span class="s">Limpieza de tanques (Ley 6040). Juntá agua el domingo.</span></div>
+            <div class="row"><span class="t">AySA: baja presión en Caballito</span><span class="s">Hasta el domingo. El tanque cubre ~20 h.</span></div>
+            <div class="row" id="pi-asamblea"><span class="t">Asamblea ordinaria jue 26/11 19 h</span><span class="s">Podés votar a distancia o dar poder.</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="panel-h"><h3>Mis reclamos</h3><button class="small" data-toast="Nuevo reclamo: categoría, foto y descripción">+ Nuevo</button></div>
+          <div class="rows">
+            <div class="row"><span class="t">Ruido de bomba de noche</span><span class="s">R-1182 · 03/11 · vinculado a una orden de trabajo</span><span class="r"><span class="pill trend">En curso</span></span></div>
+            <div class="row"><span class="t">Luz del palier 7° quemada</span><span class="s">R-1169 · 28/10 · resuelto por el encargado</span><span class="r"><span class="pill ok">Resuelto</span></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Reservar SUM</h3>
+          <div class="btnrow"><button data-toast="Sáb 14/11 reservado (simulado)">Sáb 14/11</button><button disabled>Dom 15/11 · ocupado</button><button data-toast="Sáb 21/11 reservado (simulado)">Sáb 21/11</button></div>
+        </div>
+        </div>
+        <div class="pane" data-pane="1" hidden>
+          <div class="card">
+            <h3>Cómo pagar</h3>
+            <div class="copy"><span>Alias: RIVADAVIA.4520.CONS</span><button class="small" data-copy="RIVADAVIA.4520.CONS">Copiar</button></div>
+            <div class="copy"><span>CBU 0290000100000000123456</span><button class="small" data-copy="0290000100000000123456">Copiar</button></div>
+            <span class="note">Poné tu unidad (7B) en el concepto. Se acredita solo en 24 h. También: débito automático, QR o Pago Mis Cuentas.</span>
+          </div>
+          <h3>Últimos meses</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Noviembre 2026</span><span class="s">Vence 10/11</span><span class="r"><span class="num">$ 187.430</span><span class="pill warn">A pagar</span></span></div>
+            <div class="row"><span class="t">Octubre 2026</span><span class="s">Pagada 08/10 · transferencia</span><span class="r"><span class="num">$ 181.200</span><button class="small" data-toast="Descarga el comprobante (simulado)">Recibo</button></span></div>
+            <div class="row"><span class="t">Septiembre 2026</span><span class="s">Pagada 09/09 · débito</span><span class="r"><span class="num">$ 176.950</span><button class="small" data-toast="Descarga el comprobante (simulado)">Recibo</button></span></div>
+            <div class="row"><span class="t">Agosto 2026</span><span class="s">Pagada 10/08 · QR</span><span class="r"><span class="num">$ 151.300</span><button class="small" data-toast="Descarga el comprobante (simulado)">Recibo</button></span></div>
+          </div></div>
+          <p class="note">La suba desde septiembre es la cuota extraordinaria de impermeabilización (3 de 6), aprobada en asamblea.</p>
+        </div>
+        <div class="pane" data-pane="2" hidden>
+          <form class="card" id="rec-form">
+            <h3>Nuevo reclamo</h3>
+            <div class="field"><label for="rec-cat">Qué pasa</label><select id="rec-cat"><option>Agua o pérdida</option><option>Ascensor</option><option>Luz de espacios comunes</option><option>Ruidos</option><option>Limpieza</option><option>Seguridad o puerta</option><option>Otro</option></select></div>
+            <div class="field"><label for="rec-where">Dónde</label><input id="rec-where" value="Baño de 7° B, techo"></div>
+            <div class="field"><label for="rec-desc">Contanos</label><textarea id="rec-desc">Mancha de humedad que crece desde el martes. Creo que viene del 8° B.</textarea></div>
+            <div class="field"><label for="rec-foto">Foto (opcional)</label><input id="rec-foto" type="file" accept="image/*"></div>
+            <button class="primary" type="submit">Enviar reclamo</button>
+            <span class="note">Te avisamos por WhatsApp cada vez que cambia de estado.</span>
+          </form>
+          <h3>Mis reclamos</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Ruido de bomba de noche</span><span class="s">R-1182 · técnico asignado lun 9/11</span><span class="r"><span class="pill trend">En curso</span></span></div>
+            <div class="row"><span class="t">Luz del palier 7° quemada</span><span class="s">R-1169 · resuelto en 3 h</span><span class="r"><span class="pill ok">Resuelto</span></span></div>
+          </div></div>
+        </div>
+        <div class="pane" data-pane="3" hidden>
+          <h3>Del edificio</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Reglamento de copropiedad</span><span class="s">PDF</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+            <div class="row" data-only-prop><span class="t">Balance anual 2025/26</span><span class="s">Aprobado en asamblea 08/2026</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+            <div class="row" data-only-prop><span class="t">Actas de asamblea</span><span class="s">4 actas desde 2024</span><span class="r"><button class="small" data-toast="Abre la lista">Ver</button></span></div>
+            <div class="row"><span class="t">Reglamento interno y del SUM</span><span class="s">Horarios, mascotas, mudanzas</span><span class="r"><button class="small" data-toast="Abre el PDF">Ver</button></span></div>
+          </div></div>
+          <h3>Certificados al día</h3>
+          <div class="card"><div class="rows">
+            <div class="row"><span class="t">Limpieza de tanques</span><span class="s">Ley 6040 · 05/2026 · próxima 11/2026</span><span class="r"><span class="pill ok">Vigente</span></span></div>
+            <div class="row"><span class="t">Conservación de ascensores</span><span class="s">Libro firmado 10/2026</span><span class="r"><span class="pill ok">Vigente</span></span></div>
+            <div class="row"><span class="t">Matafuegos</span><span class="s">Recarga 11/2025</span><span class="r"><span class="pill ok">Vigente</span></span></div>
+            <div class="row"><span class="t">Seguro integral</span><span class="s">Hasta 03/2027</span><span class="r"><span class="pill ok">Vigente</span></span></div>
+          </div></div>
+          <div class="card" data-only-prop>
+            <h3>Tu inquilino</h3>
+            <span>Tomás R. · +54 9 11 5555-0349</span>
+            <span class="note">Ve expensas ordinarias, reclamos, avisos y SUM.</span>
+            <button class="small" data-toast="Quitar acceso al inquilino (pide confirmación)">Cambiar permisos</button>
+          </div>
+        </div>
+      </div>
+      <div class="ph-nav" data-phnav>
+        <button aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v9H4z"/></svg>Inicio</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18"/></svg>Expensas</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v10H8l-4 4z"/></svg>Reclamos</button>
+        <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z M14 3v5h5"/></svg>Docs</button>
+      </div>
+    </div>
+    <div class="why">
+      <div>
+        <h3>Rol 6 · Propietario / inquilino</h3>
+        <h2>Pagar, reclamar y saber qué pasa</h2>
+      </div>
+      <p>El vecino quiere tres cosas: pagar fácil, que su reclamo no se pierda y enterarse antes de que se corte el agua. Probá el botón Inquilino arriba del teléfono para ver qué cambia.</p>
+      <div class="panel">
+        <h3>Decisiones de diseño</h3>
+        <ul>
+          <li>Estado del edificio en lenguaje de vecino: “agua caliente normal”, no “caldera 1,2 bar”. El dato técnico queda para el operador.</li>
+          <li>Cada aviso dice qué hacer (“juntá agua el domingo”).</li>
+          <li>Un reclamo vinculado a una OT muestra su avance sin que nadie tenga que contestar.</li>
+          <li>La deuda de otros vecinos no se ve. Solo el total del consorcio, en el balance.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Propietario o inquilino</h3>
+        <ul>
+          <li>Propietario: todas las expensas, vota en asamblea, ve balances y habilita al inquilino.</li>
+          <li>Inquilino: solo ordinarias (si el propietario lo habilita), reclamos, avisos y reservas.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<p class="note">Diseño de interfaz con datos de ejemplo. Nombres, montos y matrículas son ficticios. No hay backend: los botones muestran lo que pasaría y nada se guarda.</p>
+</main>
+
+<script>
+(function(){
+  var views=["roles","ingreso","operador","administrador","consejo","encargado","proveedor","propietario"];
+  function show(){
+    var h=(location.hash||"").replace("#","");
+    if(views.indexOf(h)<0)h="roles";
+    document.querySelectorAll("[data-view]").forEach(function(s){s.hidden=s.getAttribute("data-view")!==h});
+    document.querySelectorAll("#roles a").forEach(function(a){
+      if(a.getAttribute("data-v")===h){a.setAttribute("aria-current","page");a.scrollIntoView({block:"nearest",inline:"nearest"})}else a.removeAttribute("aria-current");
+    });
+    window.scrollTo(0,0);
+  }
+  window.addEventListener("hashchange",show);show();
+
+  var tt;
+  function toast(msg){
+    var old=document.querySelector(".toast");if(old)old.remove();
+    var d=document.createElement("div");d.className="toast";d.setAttribute("role","status");d.textContent=msg;document.body.appendChild(d);
+    clearTimeout(tt);tt=setTimeout(function(){d.remove()},2600);
+  }
+  document.addEventListener("click",function(e){
+    var b=e.target.closest("button");if(!b)return;
+    if(b.dataset.toast){toast(b.dataset.toast);return}
+    if(b.hasAttribute("data-ack")){
+      var row=b.closest(".row");var p=row.querySelector(".pill");p.className="pill trend";p.textContent="Tomada por Nico";b.remove();toast("Alarma tomada. Se frena el escalamiento");return}
+    if(b.hasAttribute("data-approve")){
+      var r=b.closest(".r");var label=b.textContent;var sp=document.createElement("span");sp.className="pill ok";sp.textContent=label==="Emitir"?"Emitida":label==="Firmar"?"Firmado":"Aprobado";b.replaceWith(sp);
+      var c=document.getElementById("adm-count");c.textContent=Math.max(0,parseInt(c.textContent,10)-1);toast(sp.textContent+". Queda registrado con fecha y firma");return}
+    if(b.hasAttribute("data-consent")){
+      var card=document.getElementById("cons-card");card.className="card";card.querySelector(".btnrow").innerHTML='<span class="pill ok">Diste conformidad · 16:44</span>';toast("Conformidad registrada. El pago queda programado");return}
+    if(b.dataset.enc){
+      var a=document.getElementById("enc-alert");a.className="card alertw";a.querySelector("h3").style.color="var(--warn)";a.querySelector("h3").textContent=b.dataset.enc==="Estoy yendo"?"En camino · Rubén":"Confirmada por el encargado";a.querySelector(".btnrow").innerHTML='<span class="pill warn">Escalamiento pausado</span>';toast("El operador ya sabe que estás en eso");return}
+    if(b.hasAttribute("data-prov-accept")){
+      var n=document.getElementById("prov-new");n.querySelector(".pill").className="pill trend";n.querySelector(".pill").textContent="Aceptada · hoy";n.querySelector(".btnrow").innerHTML='<button data-toast="Abre Google Maps con la dirección">Cómo llegar</button><button data-toast="Cargá el presupuesto o empezá el trabajo">Presupuesto</button>';toast("Aceptada. Se avisa al encargado que vas hoy");return}
+    if(b.dataset.pi){
+      document.querySelectorAll("#pi-seg button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+      var inq=b.dataset.pi==="inq";
+      document.getElementById("pi-hello").textContent=inq?"Hola, Tomás":"Hola, Laura";
+      document.getElementById("pi-amount").textContent=inq?"$ 162.900":"$ 187.430";
+      document.getElementById("pi-detail").textContent=inq?"Solo ordinarias. Las extraordinarias las paga la propietaria.":"Ordinarias $ 162.900 · Extraordinarias (impermeabilización) $ 24.530";
+      document.getElementById("pi-asamblea").hidden=inq;document.querySelectorAll("[data-only-prop]").forEach(function(x){x.hidden=inq});return}
+    var nav=b.closest("[data-phnav]");
+    if(nav){var btns=[].slice.call(nav.querySelectorAll("button"));var idx=btns.indexOf(b);btns.forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+      var ph=nav.closest(".phone");ph.querySelectorAll("[data-pane]").forEach(function(p){p.hidden=+p.dataset.pane!==idx});ph.querySelector(".ph-body").scrollTop=0;return}
+    if(b.dataset.stepTo){var ph2=b.closest(".phone");ph2.querySelectorAll("[data-step]").forEach(function(p){p.hidden=p.dataset.step!==b.dataset.stepTo});return}
+    if(b.hasAttribute("data-open-ot")){var f=document.getElementById("ot-form");f.hidden=false;f.scrollIntoView({behavior:"smooth",block:"start"});return}
+    if(b.hasAttribute("data-close-ot")){document.getElementById("ot-form").hidden=true;return}
+    if(b.hasAttribute("data-open-liq")){var l=document.getElementById("liq");l.hidden=false;l.scrollIntoView({behavior:"smooth",block:"start"});return}
+    if(b.hasAttribute("data-close-liq")){document.getElementById("liq").hidden=true;return}
+    if(b.hasAttribute("data-liq-emit")){b.replaceWith(Object.assign(document.createElement("span"),{className:"pill ok",textContent:"Emitida 07/11"}));
+      var rv=document.querySelector("[data-open-liq]");if(rv){var sp2=document.createElement("span");sp2.className="pill ok";sp2.textContent="Emitida";rv.replaceWith(sp2);var c2=document.getElementById("adm-count");c2.textContent=Math.max(0,parseInt(c2.textContent,10)-1)}
+      toast("Liquidación emitida. Avisos enviados a 18 unidades (simulado)");return}
+    if(b.dataset.bld){document.querySelectorAll("#bld-tabs button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});renderBld(+b.dataset.bld);return}
+    if(b.dataset.tpl){document.getElementById("enc-msg").value=b.dataset.tpl;return}
+    if(b.dataset.copy){var txt=b.dataset.copy;try{navigator.clipboard.writeText(txt).then(function(){toast("Copiado: "+txt)},function(){toast(txt)})}catch(err){toast(txt)}return}
+  });
+  document.getElementById("ot-form").addEventListener("submit",function(e){e.preventDefault();
+    var col=document.querySelector(".kanban .col");var d=document.createElement("div");d.className="ot";
+    d.innerHTML='<span class="id">OT-0417</span><b>'+document.getElementById("ot-eq").value+'</b><span>'+document.getElementById("ot-ed").value+' · '+document.getElementById("ot-prov").value.split(" · ")[0]+'</span><span class="pill trend">Avisado</span>';
+    col.appendChild(d);var h=col.querySelector("h3 .mono");h.textContent=+h.textContent+1;this.hidden=true;toast("OT-0417 creada. El proveedor recibió el WhatsApp");});
+  document.getElementById("rec-form").addEventListener("submit",function(e){e.preventDefault();toast("Reclamo R-1193 enviado. Lo ve el encargado ahora");});
+  var BLD=[
+    {meta:"Belgrano · 12 pisos · 36 UF · gateway OK, 12 nodos · encargado Rubén (turno mañana)",eq:[
+      ["Caldera central","crit","0,4 bar","mín. 0,8 · máx. 1,5 bar"],["Termotanque 1","ok","58 °C","24 encendidos/día"],["Termotanque 2","ok","57 °C","22 encendidos/día"],
+      ["Bomba 1","ok","3,2 mm/s","5,4 A · 9.880 h"],["Bomba 2","ok","2,9 mm/s","parada, alterna"],["Ascensor A","ok","212 viajes","arranque 18,2 A"],
+      ["Ascensor B","ok","187 viajes","arranque 17,9 A"],["Tanque reserva","ok","82%","limpieza vence: hace 3 días"]]},
+    {meta:"Caballito · 14 pisos · 42 UF · gateway OK, 14 nodos · encargado turno mañana",eq:[
+      ["Caldera central","ok","1,1 bar","72 °C ida"],["Termotanque 1","trend","42 enc./día","normal 20 a 28"],["Bomba 1","ok","3,6 mm/s","5,8 A"],
+      ["Bomba 2","warn","7,4 mm/s","zona C ISO 10816 · OT-0412"],["Ascensor A","ok","301 viajes","arranque 19,0 A"],["Ascensor B","ok","276 viajes","arranque 18,7 A"],
+      ["Tanque reserva","ok","78%","llenado 42 min"],["Tanque cisterna","ok","88%",""]]},
+    {meta:"Almagro · 7 pisos · 14 UF · sin luz desde 15:52, gateway con batería · encargado Rubén G.",eq:[
+      ["Termotanque 1","ok","55 °C","gas, sin luz no afecta"],["Bomba presurizadora","warn","no arranca","OT-0416 asignada"],["Tanque reserva","warn","31%","baja 6%/h"],
+      ["Ascensor","mut","sin energía","corte de luz Edesur"],["Gateway","warn","batería 71%","~6 h restantes"]]}
+  ];
+  var LBL={ok:"Normal",warn:"Atención",crit:"Crítico",trend:"Tendencia",mut:"Sin dato"};
+  function renderBld(i){var b=BLD[i];document.getElementById("bld-meta").textContent=b.meta;
+    document.getElementById("bld-eq").innerHTML=b.eq.map(function(e){return '<div class="eq sev '+e[1]+'"><header><b>'+e[0]+'</b><span class="pill '+e[1]+'">'+LBL[e[1]]+'</span></header><span class="v">'+e[2]+'</span><span class="lim">'+e[3]+'</span></div>'}).join("");}
+  renderBld(0);
+  document.querySelectorAll('#enc-alert ~ .card input[type=checkbox]').forEach(function(i){
+    i.addEventListener("change",function(){var all=document.querySelectorAll('.check input');var done=0;all.forEach(function(x){if(x.checked)done++});document.getElementById("enc-prog").textContent=done+"/"+all.length});
+  });
+})();
+</script>

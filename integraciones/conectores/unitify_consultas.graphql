@@ -1,0 +1,65 @@
+# Consultas GraphQL que usa el conector Unitify.
+#
+# Unitify (plataforma "Condo") documenta el login, los webhooks de pago y la
+# convención de nombres (allObjetos / createObjeto / updateObjeto), pero NO
+# publica el esquema de edificios, contactos ni reclamos. Estos nombres siguen
+# esa convención y hay que confirmarlos en el playground de Unitify
+# (https://app.unitify.com/admin/api) con la cuenta real. Si alguno cambia,
+# se corrige ACÁ, sin tocar el programa. Cada bloque empieza con "# ---- nombre".
+# Todas las listas se piden como "objs" para paginar igual (first / skip).
+
+# ---- login
+mutation Login($email: String!, $password: String!) {
+  auth: authenticateUserWithPassword(email: $email, password: $password) {
+    token
+    item { id name }
+  }
+}
+
+# ---- yo
+query Yo { authenticatedUser { id name type } }
+
+# ---- edificios
+query Edificios($first: Int!, $skip: Int!) {
+  objs: allProperties(first: $first, skip: $skip, sortBy: [createdAt_ASC], where: { deletedAt: null }) {
+    id
+    name
+    address
+    unitsCount
+  }
+}
+
+# ---- contactos
+query Contactos($first: Int!, $skip: Int!) {
+  objs: allContacts(first: $first, skip: $skip, sortBy: [createdAt_ASC], where: { deletedAt: null }) {
+    id
+    name
+    phone
+    email
+    unitName
+    unitType
+    isMainContact
+    property { id }
+  }
+}
+
+# ---- reclamos
+query Reclamos($first: Int!, $skip: Int!, $desde: String!) {
+  objs: allTickets(first: $first, skip: $skip, sortBy: [createdAt_ASC], where: { deletedAt: null, updatedAt_gte: $desde }) {
+    id
+    number
+    details
+    status { type name }
+    property { id }
+    unitName
+    clientName
+    clientPhone
+    createdAt
+    updatedAt
+  }
+}
+
+# ---- crear_reclamo
+mutation CrearReclamo($data: TicketCreateInput!) {
+  obj: createTicket(data: $data) { id number }
+}

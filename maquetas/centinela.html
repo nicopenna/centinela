@@ -1,0 +1,456 @@
+<title>Centinela de Equipos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: consola de sala de máquinas — resumen arriba, lista de equipos a la izquierda, ficha del equipo a la derecha, bitácora de alertas abajo */
+:root{
+  --bg:#eef2f4; --panel:#ffffff; --sunk:#e3e9ec; --line:#cfd8dd; --fg:#16252d; --muted:#5a6d77;
+  --accent:#1d5d78; --accent-soft:#d6e7ef;
+  --ok:#2f7d4f; --ok-soft:#dcefe3; --warn:#b26a00; --warn-soft:#fbecd2; --crit:#c0322b; --crit-soft:#f8dcda; --trend:#3d5fc4; --trend-soft:#e0e6fa;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --trend:#8ea6ff; --trend-soft:#232e55; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --trend:#8ea6ff; --trend-soft:#232e55; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:30px;line-height:1}
+h2{font-size:21px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-family:var(--f-body);font-weight:600}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 12px;font-weight:500}
+button:hover{border-color:var(--accent)}
+button:focus-visible,select:focus-visible,.eq:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+select{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 8px}
+
+/* Encabezado */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.brand small{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.clock{font-family:var(--f-mono);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px;display:flex;gap:8px;align-items:center}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.paused .pulse{background:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.live .pulse{animation:p 1.5s infinite}@keyframes p{50%{opacity:.25}}}
+.ctl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+
+/* Resumen */
+.summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--f-display);font-size:34px;line-height:1;font-weight:600}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat.ok b{color:var(--ok)} .stat.trend b{color:var(--trend)} .stat.warn b{color:var(--warn)} .stat.crit b{color:var(--crit)}
+@media (max-width:700px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.summary .stat:last-child{grid-column:span 2}}
+
+/* Cuerpo */
+.main{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.list{display:flex;flex-direction:column;gap:14px}
+.group{display:flex;flex-direction:column;gap:6px}
+.eq{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;text-align:left;width:100%}
+.eq:hover{border-color:var(--accent)}
+.eq.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.eq .dot{width:10px;height:10px;border-radius:50%;grid-row:span 2}
+.eq .nm{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eq .sub{grid-column:2 / 4;font-size:12px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.s0 .dot,.dot.s0{background:var(--ok)} .chip.s0{background:var(--ok-soft);color:var(--ok)}
+.s1 .dot,.dot.s1{background:var(--trend)} .chip.s1{background:var(--trend-soft);color:var(--trend)}
+.s2 .dot,.dot.s2{background:var(--warn)} .chip.s2{background:var(--warn-soft);color:var(--warn)}
+.s3 .dot,.dot.s3{background:var(--crit)} .chip.s3{background:var(--crit-soft);color:var(--crit)}
+.eq.s3{border-color:var(--crit)}
+
+.detail{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.dhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start}
+.dhead .meta{color:var(--muted);font-size:13px;margin-top:4px}
+.dhead .acts{display:flex;gap:8px;flex-wrap:wrap}
+.cause{background:var(--warn-soft);color:var(--fg);border-radius:6px;padding:8px 12px;font-size:13px}
+.params{display:flex;flex-direction:column}
+.prow{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(90px,.7fr) minmax(140px,1.4fr) minmax(130px,1.2fr);gap:6px 16px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0}
+.prow .lbl{font-weight:500}
+.prow .lbl small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.prow .val{font-family:var(--f-display);font-size:28px;font-weight:600;line-height:1;white-space:nowrap}
+.prow .val small{font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.prow.l2 .val{color:var(--warn)} .prow.l3 .val{color:var(--crit)}
+.gauge{display:flex;flex-direction:column;gap:4px}
+.track{position:relative;height:8px;border-radius:4px;background:var(--ok-soft);overflow:hidden}
+.zone{position:absolute;top:0;bottom:0}
+.zone.w{background:var(--warn-soft)} .zone.c{background:var(--crit-soft)}
+.mark{position:absolute;top:-3px;width:3px;height:14px;background:var(--fg);border-radius:2px;transform:translateX(-50%)}
+.gwrap{position:relative;padding-top:3px;padding-bottom:3px}
+.lims{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.fc{font-size:12px;color:var(--muted)}
+.fc.t{color:var(--trend);font-weight:500}
+canvas.spark{width:100%;height:42px;display:block}
+.advice{grid-column:1 / -1;font-size:13px;background:var(--sunk);border-radius:6px;padding:7px 10px}
+.advice b{font-weight:600}
+@media (max-width:640px){.prow{grid-template-columns:minmax(0,1fr) auto}.prow .gauge,.prow .sp{grid-column:1 / -1}}
+
+.tasks{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.task{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:9px 12px;border-top:1px solid var(--line);font-size:13px}
+.task:first-child{border-top:0}
+.task .when{color:var(--muted);font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+
+/* Bitácora */
+.logbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.loghead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.log{display:flex;flex-direction:column;max-height:320px;overflow-y:auto}
+.li{display:grid;grid-template-columns:110px auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.li:first-child{border-top:0}
+.li.ack{opacity:.55}
+.li .t{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.li .msg{min-width:0}
+.li .msg b{font-weight:600}
+.chip.info{background:var(--accent-soft);color:var(--accent)}
+.li button{padding:3px 9px;font-size:12px}
+@media (max-width:640px){.li{grid-template-columns:auto minmax(0,1fr)}.li .t{grid-column:1 / -1}.li button{grid-column:1 / -1;justify-self:start}}
+.empty{color:var(--muted);font-size:13px;padding:8px 0}
+
+details.guide{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+details.guide summary{cursor:pointer;font-weight:600}
+details.guide p,details.guide li{max-width:75ch;color:var(--fg)}
+details.guide ul{padding-left:20px}
+.note{font-size:12px;color:var(--muted)}
+</style>
+
+<div class="wrap" id="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Centinela de Equipos</h1>
+      <small>Edificio de ejemplo · alerta temprana y mantenimiento preventivo · <strong>datos simulados</strong></small>
+    </div>
+    <div class="controls">
+      <div class="clock live" id="clock"><span class="pulse"></span><span id="clockTxt">—</span></div>
+      <label class="ctl" for="rate">Cada lectura equivale a
+        <select id="rate">
+          <option value="1">1 min</option>
+          <option value="15" selected>15 min</option>
+          <option value="60">1 hora</option>
+        </select>
+      </label>
+      <button id="pause" type="button">Pausar</button>
+    </div>
+  </header>
+
+  <section class="summary" id="summary" aria-label="Resumen de estado"></section>
+
+  <section class="main">
+    <nav class="list" id="list" aria-label="Equipos"></nav>
+    <article class="detail" id="detail" aria-live="polite"></article>
+  </section>
+
+  <section class="logbox">
+    <div class="loghead">
+      <h2>Bitácora de alertas</h2>
+      <button id="ackAll" type="button">Reconocer todas</button>
+    </div>
+    <div class="log" id="log"></div>
+  </section>
+
+  <details class="guide">
+    <summary>Cómo pasar de la simulación a sensores reales</summary>
+    <p>Cada parámetro de la ficha indica el sensor sugerido. Para operar con datos reales, un equipo de adquisición en la sala de máquinas (PLC, gateway Modbus o un ESP32/Raspberry Pi) lee los sensores y publica una lectura por parámetro con su marca de tiempo, por ejemplo por MQTT en <span class="mono">edificio/BOM-02/vib</span>. Este panel reemplaza su generador simulado por esa suscripción y conserva la misma lógica de umbrales, tendencias y tareas.</p>
+    <ul>
+      <li><strong>Tiempo real</strong>: temperatura, presión, corriente y vibración cada 1 a 60 s.</li>
+      <li><strong>Muestreo</strong>: cloro residual y turbidez del tanque pueden cargarse a mano tras cada medición con kit o fotómetro.</li>
+      <li>Los umbrales son valores de referencia habituales. Ajústelos con los datos de placa de cada equipo y con el reglamento local de ascensores y de agua potable.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- Catálogo: parámetros, umbrales, fallas típicas y tareas ---------- */
+// lo/hi: [atención, crítico]. n: ruido. rate: cambio por minuto que siempre ocurre (contadores). wave: [amplitud, período en min].
+var TYPES = {
+  caldera:{name:"Calderas", params:[
+    {k:"tIda",l:"Temperatura de ida",u:"°C",base:75,n:.6,min:40,max:110,hi:[85,95],d:1,s:"Sonda PT100 en caño de ida"},
+    {k:"pres",l:"Presión del circuito",u:"bar",base:1.5,n:.02,min:0,max:3.5,lo:[.8,.5],hi:[2.5,3],d:2,s:"Transductor 4–20 mA, 0–6 bar"},
+    {k:"tHumos",l:"Temperatura de humos",u:"°C",base:165,n:2,min:80,max:280,hi:[200,240],d:0,s:"Termocupla tipo K en conducto"},
+    {k:"co",l:"CO en la sala",u:"ppm",base:4,n:.8,min:0,max:150,hi:[35,100],d:0,floor:0,s:"Detector de CO electroquímico"},
+    {k:"o2",l:"O₂ en humos",u:"%",base:4.5,n:.12,min:0,max:12,lo:[2.5,1.5],hi:[7.5,9],d:1,s:"Analizador de combustión (muestreo)"}],
+    faults:[
+      {why:"Pérdida de agua en el circuito o vaso de expansión desinflado",dr:{pres:-.0011}},
+      {why:"Intercambiador con hollín: baja la eficiencia",dr:{tHumos:.05,o2:.0008}},
+      {why:"Combustión deficiente o tiraje obstruido",dr:{co:.05,o2:-.0007}}],
+    advice:{tIda:"Verificar termostato y bomba circuladora.",pres:{lo:"Reponer agua, buscar pérdidas y revisar el vaso de expansión.",hi:"Revisar vaso de expansión y válvula de seguridad."},tHumos:"Programar limpieza del intercambiador y del quemador.",co:"Ventilar la sala y revisar tiraje y quemador de inmediato.",o2:{lo:"Falta de aire de combustión: riesgo de CO. Ajustar el quemador.",hi:"Exceso de aire: se pierde rendimiento. Ajustar el quemador."}},
+    tasks:[["Limpieza de quemador e intercambiador",180],["Análisis de combustión",180],["Prueba de válvula de seguridad",90],["Revisión del vaso de expansión",365]]},
+  termo:{name:"Termotanques", params:[
+    {k:"tAgua",l:"Temperatura del agua",u:"°C",base:56,n:.4,min:20,max:95,lo:[48,42],hi:[68,80],d:1,s:"Sonda NTC en vaina"},
+    {k:"pres",l:"Presión interna",u:"bar",base:3.5,n:.04,min:0,max:10,hi:[6,8],d:1,s:"Transductor de presión 0–10 bar"},
+    {k:"recup",l:"Tiempo de recuperación",u:"min",base:35,n:.8,min:0,max:120,hi:[50,70],d:0,s:"Calculado: tiempo para recuperar 20 °C"},
+    {k:"anodo",l:"Vida estimada del ánodo",u:"%",base:0,n:0,min:0,max:100,lo:[30,10],d:0,rate:-1/1440,reset:100,s:"Estimado por calendario y dureza del agua"}],
+    faults:[
+      {why:"Sarro acumulado en el fondo del tanque",dr:{recup:.02}},
+      {why:"Termostato descalibrado",dr:{tAgua:.008}},
+      {why:"Válvula de alivio trabada o sobrepresión de red",dr:{pres:.0018}}],
+    advice:{tAgua:{lo:"Por debajo de 50 °C aumenta el riesgo de legionela. Revisar termostato y llama.",hi:"Riesgo de quemaduras y sobrepresión. Revisar termostato y válvula de alivio."},pres:"Probar la válvula de alivio y revisar la presión de red.",recup:"Purgar sedimentos y revisar el quemador o la resistencia.",anodo:"Reemplazar el ánodo de magnesio para evitar corrosión del tanque."},
+    tasks:[["Purga de sedimentos",180],["Prueba de válvula de alivio",180],["Inspección del ánodo de magnesio",365],["Control de llama y piloto",90]]},
+  bomba:{name:"Bombas de agua", params:[
+    {k:"pDesc",l:"Presión de descarga",u:"bar",base:4.2,n:.05,min:0,max:8,lo:[3.2,2.5],hi:[6,7],d:1,s:"Transductor 4–20 mA en la descarga"},
+    {k:"corr",l:"Corriente del motor",u:"A",base:8.5,n:.1,min:0,max:16,hi:[10,11.5],d:1,s:"Transformador de corriente (pinza)"},
+    {k:"vib",l:"Vibración (RMS)",u:"mm/s",base:1.9,n:.08,min:0,max:12,hi:[4.5,7.1],d:1,floor:0,s:"Acelerómetro en carcasa del rodamiento"},
+    {k:"tRod",l:"Temperatura de rodamientos",u:"°C",base:52,n:.4,min:20,max:110,hi:[80,95],d:0,s:"Sonda PT100 o termómetro IR"},
+    {k:"arr",l:"Arranques por hora",u:"/h",base:4,n:.5,min:0,max:25,hi:[10,15],d:0,floor:0,s:"Contador desde el contactor"}],
+    faults:[
+      {why:"Desgaste de rodamientos o desbalanceo del impulsor",dr:{vib:.0028,tRod:.018}},
+      {why:"Sobrecarga del motor o sello mecánico que roza",dr:{corr:.0018,tRod:.012}},
+      {why:"Tanque hidroneumático sin aire o presostato desajustado",dr:{arr:.008}},
+      {why:"Cavitación o impulsor gastado",dr:{pDesc:-.0012,vib:.001}}],
+    advice:{pDesc:{lo:"Revisar succión, filtros y desgaste del impulsor.",hi:"Revisar válvulas cerradas aguas abajo y el presostato."},corr:"Medir aislación y revisar el sello mecánico y la alineación.",vib:"Según ISO 10816, sobre 4,5 mm/s conviene programar cambio de rodamientos y alineación.",tRod:"Lubricar y verificar rodamientos antes de que se dañe el eje.",arr:"Demasiados arranques recalientan el motor. Recargar aire del tanque hidroneumático."},
+    tasks:[["Lubricación de rodamientos",90],["Revisión del sello mecánico",180],["Alineación y anclajes",365],["Medición de aislación del motor",365]]},
+  ascensor:{name:"Motores de ascensor", params:[
+    {k:"tMot",l:"Temperatura del bobinado",u:"°C",base:62,n:.5,min:20,max:150,hi:[100,120],d:0,s:"PT100 o termistor PTC del motor"},
+    {k:"corr",l:"Corriente en marcha",u:"A",base:18,n:.35,min:0,max:40,hi:[24,28],d:1,s:"Transformador de corriente en el variador"},
+    {k:"vib",l:"Vibración de la máquina",u:"mm/s",base:1.4,n:.07,min:0,max:10,hi:[3.5,5.5],d:1,floor:0,s:"Acelerómetro en la máquina de tracción"},
+    {k:"niv",l:"Error de nivelación",u:"mm",base:3,n:.5,min:0,max:30,hi:[10,18],d:1,floor:0,s:"Encoder o sensor de piso"},
+    {k:"puerta",l:"Fallas de puerta por día",u:"",base:.5,n:.3,min:0,max:15,hi:[4,8],d:0,floor:0,s:"Registro del controlador"},
+    {k:"tSala",l:"Temperatura de sala de máquinas",u:"°C",base:28,n:.3,min:10,max:50,hi:[35,40],d:1,s:"Sensor de ambiente"}],
+    faults:[
+      {why:"Freno que roza o sobrecarga de la cabina",dr:{tMot:.025,corr:.0025}},
+      {why:"Desgaste de cables, poleas o zapatas de freno",dr:{niv:.006,vib:.0012}},
+      {why:"Patín o operador de puerta desajustado",dr:{puerta:.0045}},
+      {why:"Ventilación de la sala de máquinas insuficiente",dr:{tSala:.008,tMot:.01}}],
+    advice:{tMot:"Revisar freno, ventilación del motor y carga de la cabina.",corr:"Revisar contrapeso, freno y guías.",vib:"Inspeccionar rodamientos de la máquina, poleas y cables.",niv:"Revisar freno y encoder. Un escalón alto es riesgo de caída.",puerta:"Ajustar operador de puerta, patines y contactos.",tSala:"Mejorar ventilación o instalar extractor en la sala de máquinas."},
+    tasks:[["Mantenimiento mensual del conservador",30],["Lubricación de guías",30],["Inspección de cables y poleas",180],["Prueba de paracaídas y limitador",365]]},
+  tanque:{name:"Tanques de agua", params:[
+    {k:"nivel",l:"Nivel",u:"%",base:76,n:.3,min:0,max:100,lo:[35,20],hi:[97,99.5],d:0,wave:[10,720],s:"Sensor ultrasónico o de presión hidrostática"},
+    {k:"cloro",l:"Cloro residual libre",u:"mg/L",base:.45,n:.012,min:0,max:1.2,lo:[.2,.1],hi:[.8,1],d:2,floor:0,s:"Kit DPD o sonda amperométrica (muestreo)"},
+    {k:"turb",l:"Turbidez",u:"NTU",base:.4,n:.04,min:0,max:5,hi:[1,3],d:1,floor:0,s:"Turbidímetro (muestreo)"},
+    {k:"tAgua",l:"Temperatura del agua",u:"°C",base:21,n:.15,min:0,max:40,hi:[25,30],d:1,s:"Sonda sumergible"},
+    {k:"dLimp",l:"Días desde la última limpieza",u:"d",base:0,n:0,min:0,max:200,hi:[150,180],d:0,rate:1/1440,reset:0,s:"Registro de limpieza"}],
+    faults:[
+      {why:"Consumo de cloro sin reposición",dr:{cloro:-.00016}},
+      {why:"Flotante trabado o bomba de llenado detenida",dr:{nivel:-.03}},
+      {why:"Sedimentos en el fondo: el tanque necesita limpieza",dr:{turb:.0018,cloro:-.00006}}],
+    advice:{nivel:{lo:"Verificar bombas elevadoras, flotante y válvula de llenado.",hi:"Revisar flotante y ruptor: riesgo de rebalse."},cloro:{lo:"Con menos de 0,2 mg/L el agua pierde protección bacteriológica. Dosificar cloro y tomar muestra.",hi:"Exceso de cloro: revisar el dosificador."},turb:"Programar limpieza y desinfección del tanque.",tAgua:"Agua tibia favorece bacterias. Revisar aislación y tapa del tanque.",dLimp:"La limpieza y desinfección se recomienda cada 6 meses."},
+    tasks:[["Limpieza y desinfección",180],["Análisis bacteriológico",180],["Revisión de flotantes, tapas y ventilación",90]]}
+};
+
+var EQUIP = [
+  {id:"CAL-01",t:"caldera",name:"Caldera central 1",loc:"Sala de máquinas, subsuelo",run:12840,last:[40,40,20,200]},
+  {id:"CAL-02",t:"caldera",name:"Caldera central 2",loc:"Sala de máquinas, subsuelo",run:11960,last:[170,150,85,200],fault:1,faultAge:2400},
+  {id:"TT-01",t:"termo",name:"Termotanque portería",loc:"Planta baja",run:6200,last:[60,60,300,30],start:{anodo:58}},
+  {id:"TT-02",t:"termo",name:"Termotanque SUM",loc:"Terraza, SUM",run:4100,last:[195,120,340,20],start:{anodo:34},fault:0,faultAge:3000},
+  {id:"BOM-01",t:"bomba",name:"Bomba elevadora 1",loc:"Sala de bombas",run:21500,last:[30,90,200,200]},
+  {id:"BOM-02",t:"bomba",name:"Bomba elevadora 2",loc:"Sala de bombas",run:23900,last:[95,160,300,300],fault:0,faultAge:900},
+  {id:"BOM-03",t:"bomba",name:"Bomba presurizadora",loc:"Azotea",run:15200,last:[40,40,100,100]},
+  {id:"ASC-01",t:"ascensor",name:"Ascensor principal",loc:"Sala de máquinas, azotea",run:30400,last:[12,12,90,200]},
+  {id:"ASC-02",t:"ascensor",name:"Ascensor de servicio",loc:"Sala de máquinas, azotea",run:27800,last:[25,33,150,300],fault:2,faultAge:600},
+  {id:"TQ-01",t:"tanque",name:"Tanque de reserva",loc:"Azotea, 20.000 L",run:0,last:[140,140,30],start:{dLimp:140},fault:0,faultAge:700},
+  {id:"TQ-02",t:"tanque",name:"Cisterna",loc:"Subsuelo, 30.000 L",run:0,last:[60,60,20],start:{dLimp:60}}
+];
+
+var LVL_TXT = ["Normal","Tendencia","Atención","Crítico"];
+var START = new Date(2026,9,30,8,0,0).getTime();
+var HIST = 96;
+
+var S = {min:0, rate:15, paused:false, sel:"BOM-02", log:[], seq:0, eq:{}};
+
+function gauss(){var u=1-Math.random(),v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function fmtNum(v,d){return v.toLocaleString("es-AR",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fmtTime(min){var dt=new Date(START+min*60000);var dd=["dom","lun","mar","mié","jue","vie","sáb"][dt.getDay()];
+  return dd+" "+String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0")+" "+String(dt.getHours()).padStart(2,"0")+":"+String(dt.getMinutes()).padStart(2,"0")}
+function fmtDur(min){if(min<60)return Math.round(min)+" min";var h=min/60;if(h<48)return "~"+Math.round(h)+" h";return "~"+Math.round(h/24)+" días"}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+function level(p,v){
+  if(p.hi){if(v>=p.hi[1])return 3;if(v>=p.hi[0])return 2}
+  if(p.lo){if(v<=p.lo[1])return 3;if(v<=p.lo[0])return 2}
+  return 0}
+
+/* ---------- Estado inicial ---------- */
+EQUIP.forEach(function(e){
+  var T=TYPES[e.t], st={off:{},drift:{},v:{},h:{},lvl:{},pred:{},prevL:{},prevT:{},faultWhy:null,last:[],runBase:e.run};
+  T.params.forEach(function(p){
+    st.off[p.k]=e.start&&e.start[p.k]!=null?e.start[p.k]:0; st.drift[p.k]=0; st.h[p.k]=[]; st.prevL[p.k]=0; st.prevT[p.k]=false});
+  st.last=T.tasks.map(function(t,i){return -(e.last[i]||0)*1440});
+  S.eq[e.id]=st;
+  if(e.fault!=null){applyFault(e,T.faults[e.fault],true);
+    // la falla empezó antes: adelantar la deriva acumulada
+    T.params.forEach(function(p){st.off[p.k]+=st.drift[p.k]*e.faultAge})}
+});
+
+function applyFault(e,f,silent){
+  var st=S.eq[e.id];Object.keys(f.dr).forEach(function(k){st.drift[k]+=f.dr[k]});st.faultWhy=f.why;
+  if(!silent)addLog(1,e,null,"Falla simulada: "+f.why.toLowerCase()+".")}
+
+/* ---------- Simulación ---------- */
+function step(dm){
+  S.min+=dm;
+  EQUIP.forEach(function(e){
+    var T=TYPES[e.t],st=S.eq[e.id];
+    T.params.forEach(function(p){
+      st.off[p.k]+=(st.drift[p.k]+(p.rate||0))*dm;
+      var v=p.base+st.off[p.k]+p.n*gauss();
+      if(p.wave)v+=p.wave[0]*Math.sin(2*Math.PI*S.min/p.wave[1]);
+      if(p.floor!=null)v=Math.max(p.floor,v);
+      v=Math.max(p.min,Math.min(p.max*1.05,v));
+      if(p.k==="anodo"||p.k==="dLimp")v=Math.max(0,v);
+      st.v[p.k]=v;
+      var h=st.h[p.k];h.push([S.min,v]);if(h.length>HIST)h.shift();
+    })
+  })
+}
+
+// Pronóstico: regresión lineal de las últimas lecturas, tiempo hasta cruzar el próximo umbral.
+function forecast(p,h,v){
+  var n=Math.min(h.length,32);if(n<8||p.wave)return null;
+  var pts=h.slice(-n),mt=0,mv=0;pts.forEach(function(q){mt+=q[0];mv+=q[1]});mt/=n;mv/=n;
+  var num=0,den=0;pts.forEach(function(q){num+=(q[0]-mt)*(q[1]-mv);den+=(q[0]-mt)*(q[0]-mt)});
+  if(!den)return null;var slope=num/den;// por minuto
+  if(Math.abs(slope*1440)<Math.max(3*p.n,(p.max-p.min)*.01))return null;
+  var target=null,kind=null;
+  if(slope>0&&p.hi){if(v<p.hi[0]){target=p.hi[0];kind=2}else if(v<p.hi[1]){target=p.hi[1];kind=3}}
+  if(slope<0&&p.lo){if(v>p.lo[0]){target=p.lo[0];kind=2}else if(v>p.lo[1]){target=p.lo[1];kind=3}}
+  if(target==null)return {slope:slope};
+  return {slope:slope,eta:(target-v)/slope,kind:kind}}
+
+function evaluate(){
+  EQUIP.forEach(function(e){
+    var T=TYPES[e.t],st=S.eq[e.id];
+    T.params.forEach(function(p){
+      var v=st.v[p.k],L=level(p,v),fc=forecast(p,st.h[p.k],v);
+      st.lvl[p.k]=L;st.pred[p.k]=fc;
+      if(L>st.prevL[p.k])addLog(L,e,p,p.l+" en "+fmtNum(v,p.d)+" "+p.u+" ("+(L===3?"crítico":"atención")+")");
+      if(L===0&&st.prevL[p.k]>0)addLog(0,e,p,p.l+" volvió al rango normal");
+      var trend=L===0&&fc&&fc.eta!=null&&fc.eta<24*60;
+      if(trend&&!st.prevT[p.k])addLog(1,e,p,"Tendencia: "+p.l.toLowerCase()+" cruzaría el umbral de atención en "+fmtDur(fc.eta));
+      st.prevT[p.k]=!!trend;st.prevL[p.k]=L;
+      st.lvl[p.k]=L||(trend?1:0);
+    })
+  })}
+
+function eqLevel(id){var st=S.eq[id],m=0;Object.keys(st.lvl).forEach(function(k){m=Math.max(m,st.lvl[k])});return m}
+function worst(e){var T=TYPES[e.t],st=S.eq[e.id],best=null;
+  T.params.forEach(function(p){var L=st.lvl[p.k];if(!best||L>best.L)best={p:p,L:L}});return best}
+function taskInfo(e,i){var t=TYPES[e.t].tasks[i],days=(S.min-S.eq[e.id].last[i])/1440,left=t[1]-days;
+  return {name:t[0],every:t[1],days:days,left:left,L:left<0?3:left<t[1]*.1?2:0}}
+
+function addLog(L,e,p,msg){S.log.unshift({id:++S.seq,t:S.min,L:L,eq:e.id,name:e.name,msg:msg,ack:L===0});if(S.log.length>200)S.log.pop()}
+
+/* ---------- Render ---------- */
+var $=function(id){return document.getElementById(id)};
+function chip(L,txt){return '<span class="chip s'+L+'">'+(txt||LVL_TXT[L])+'</span>'}
+
+function renderSummary(){
+  var c=[0,0,0,0];EQUIP.forEach(function(e){c[eqLevel(e.id)]++});
+  var open=S.log.filter(function(a){return !a.ack&&a.L>0}).length;
+  $("summary").innerHTML=
+    '<div class="stat ok"><b class="num">'+c[0]+'</b><span>Normales</span></div>'+
+    '<div class="stat trend"><b class="num">'+c[1]+'</b><span>Con tendencia</span></div>'+
+    '<div class="stat warn"><b class="num">'+c[2]+'</b><span>En atención</span></div>'+
+    '<div class="stat crit"><b class="num">'+c[3]+'</b><span>Críticos</span></div>'+
+    '<div class="stat"><b class="num">'+open+'</b><span>Alertas sin reconocer</span></div>'}
+
+function renderList(){
+  var html="";Object.keys(TYPES).forEach(function(t){
+    html+='<div class="group"><h3>'+TYPES[t].name+'</h3>';
+    EQUIP.filter(function(e){return e.t===t}).forEach(function(e){
+      var L=eqLevel(e.id),w=worst(e),st=S.eq[e.id];
+      var sub=L>0?w.p.l+": "+fmtNum(st.v[w.p.k],w.p.d)+" "+w.p.u:e.id+" · "+e.loc;
+      html+='<button type="button" class="eq s'+L+(S.sel===e.id?" sel":"")+'" data-eq="'+e.id+'"><span class="dot"></span><span class="nm">'+esc(e.name)+'</span>'+chip(L)+'<span class="sub">'+esc(sub)+'</span></button>'});
+    html+='</div>'});
+  $("list").innerHTML=html}
+
+function gauge(p,v){
+  var span=p.max-p.min,pct=function(x){return Math.max(0,Math.min(100,(x-p.min)/span*100))},z="";
+  if(p.hi){z+='<span class="zone w" style="left:'+pct(p.hi[0])+'%;right:0"></span><span class="zone c" style="left:'+pct(p.hi[1])+'%;right:0"></span>'}
+  if(p.lo){z+='<span class="zone w" style="left:0;width:'+pct(p.lo[0])+'%"></span><span class="zone c" style="left:0;width:'+pct(p.lo[1])+'%"></span>'}
+  var lim=[];if(p.lo)lim.push("mín "+fmtNum(p.lo[0],p.d));if(p.hi)lim.push("máx "+fmtNum(p.hi[0],p.d));
+  return '<div class="gauge"><div class="gwrap"><div class="track">'+z+'</div><span class="mark" style="left:'+pct(v)+'%"></span></div>'+
+    '<div class="lims"><span>'+fmtNum(p.min,0)+'</span><span>'+lim.join(" · ")+'</span><span>'+fmtNum(p.max,0)+'</span></div></div>'}
+
+function renderDetail(){
+  var e=EQUIP.find(function(x){return x.id===S.sel}),T=TYPES[e.t],st=S.eq[e.id],L=eqLevel(e.id);
+  var hrs=e.run?' · '+fmtNum(st.runBase+S.min/60*(e.t==="ascensor"?.35:e.t==="bomba"?.5:.6),0)+' h de marcha':'';
+  var h='<div class="dhead"><div><h2>'+esc(e.name)+' '+chip(L)+'</h2><div class="meta"><span class="mono">'+e.id+'</span> · '+esc(e.loc)+hrs+'</div></div>'+
+    '<div class="acts"><button type="button" data-act="fault">Simular falla</button><button type="button" class="primary" data-act="maint">Registrar mantenimiento</button></div></div>';
+  if(st.faultWhy&&L>0)h+='<div class="cause"><b>Causa probable:</b> '+esc(st.faultWhy)+'.</div>';
+  h+='<div class="params">';
+  T.params.forEach(function(p){
+    var v=st.v[p.k],Lp=st.lvl[p.k],fc=st.pred[p.k],fct="Estable";
+    if(fc&&fc.eta!=null)fct=(fc.kind===3?"Crítico":"Atención")+" en "+fmtDur(fc.eta)+" al ritmo actual";
+    else if(fc)fct=(fc.slope>0?"Subiendo":"Bajando")+" "+fmtNum(Math.abs(fc.slope*1440),p.d)+" "+p.u+"/día";
+    if(p.wave)fct="Ciclo normal de consumo y llenado";
+    var adv=T.advice[p.k];if(adv&&typeof adv==="object")adv=(p.lo&&v<=p.lo[0])?adv.lo:adv.hi;
+    h+='<div class="prow l'+Lp+'"><div class="lbl">'+esc(p.l)+'<small>'+esc(p.s)+'</small></div>'+
+      '<div class="val num">'+fmtNum(v,p.d)+'<small>'+p.u+'</small></div>'+gauge(p,v)+
+      '<div class="sp"><canvas class="spark" data-p="'+p.k+'"></canvas><div class="fc'+(Lp===1?" t":"")+'">'+fct+'</div></div>'+
+      (Lp>0&&adv?'<div class="advice"><b>'+(Lp===1?"Anticiparse":"Acción")+':</b> '+esc(adv)+'</div>':'')+'</div>'});
+  h+='</div><h3>Plan de mantenimiento preventivo</h3><div class="tasks">';
+  T.tasks.forEach(function(_,i){var ti=taskInfo(e,i);
+    var when=ti.left<0?"vencida hace "+Math.round(-ti.left)+" d":"en "+Math.round(ti.left)+" d";
+    h+='<div class="task"><span>'+esc(ti.name)+' <span class="note">cada '+ti.every+' d</span></span><span class="when">'+when+'</span>'+chip(ti.L,ti.L===3?"Vencida":ti.L===2?"Próxima":"Al día")+'</div>'});
+  h+='</div>';
+  $("detail").innerHTML=h;
+  drawSparks(e)}
+
+function drawSparks(e){
+  var T=TYPES[e.t],st=S.eq[e.id],cs=getComputedStyle(document.documentElement);
+  var col={0:cs.getPropertyValue("--accent"),1:cs.getPropertyValue("--trend"),2:cs.getPropertyValue("--warn"),3:cs.getPropertyValue("--crit")},
+      line=cs.getPropertyValue("--line"),warn=cs.getPropertyValue("--warn"),crit=cs.getPropertyValue("--crit");
+  document.querySelectorAll("canvas.spark").forEach(function(c){
+    var p=T.params.find(function(x){return x.k===c.dataset.p}),h=st.h[p.k];if(h.length<2)return;
+    var dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;c.width=W*dpr;c.height=H*dpr;
+    var g=c.getContext("2d");g.scale(dpr,dpr);
+    var vals=h.map(function(q){return q[1]}),lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);
+    var ths=[];if(p.hi)ths.push([p.hi[0],warn]);if(p.lo)ths.push([p.lo[0],warn]);
+    ths.forEach(function(t){if(Math.abs(t[0]-(lo+hi)/2)<(hi-lo)*1.5+p.n*6){lo=Math.min(lo,t[0]);hi=Math.max(hi,t[0])}});
+    var pad=(hi-lo)*.12||p.n||1;lo-=pad;hi+=pad;
+    var X=function(i){return 2+i/(h.length-1)*(W-8)},Y=function(v){return H-3-(v-lo)/(hi-lo)*(H-6)};
+    g.strokeStyle=line;g.lineWidth=1;g.beginPath();g.moveTo(0,H-.5);g.lineTo(W,H-.5);g.stroke();
+    ths.forEach(function(t){if(t[0]>lo&&t[0]<hi){g.strokeStyle=t[1];g.setLineDash([3,3]);g.beginPath();g.moveTo(0,Y(t[0]));g.lineTo(W,Y(t[0]));g.stroke();g.setLineDash([])}});
+    var cl=col[st.lvl[p.k]].trim();
+    g.beginPath();vals.forEach(function(v,i){i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))});
+    g.lineTo(X(vals.length-1),H);g.lineTo(X(0),H);g.closePath();g.globalAlpha=.14;g.fillStyle=cl;g.fill();g.globalAlpha=1;
+    g.beginPath();vals.forEach(function(v,i){i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))});g.strokeStyle=cl;g.lineWidth=1.6;g.stroke();
+    g.beginPath();g.arc(X(vals.length-1),Y(vals[vals.length-1]),3,0,7);g.fillStyle=cl;g.fill()})}
+
+function renderLog(){
+  var items=S.log.slice(0,60);
+  if(!items.length){$("log").innerHTML='<div class="empty">Sin alertas por ahora. Las alertas aparecen cuando un parámetro cruza un umbral o muestra una tendencia hacia él.</div>';return}
+  $("log").innerHTML=items.map(function(a){
+    var c=a.L===0?'<span class="chip s0">Normalizado</span>':a.L===1&&a.msg.indexOf("Falla")===0?'<span class="chip info">Prueba</span>':chip(a.L);
+    return '<div class="li'+(a.ack?" ack":"")+'"><span class="t">'+fmtTime(a.t)+'</span>'+c+'<span class="msg"><b>'+esc(a.name)+'</b> · '+esc(a.msg)+'</span>'+
+      (a.ack?'<span class="note">Reconocida</span>':'<button type="button" data-ack="'+a.id+'">Reconocer</button>')+'</div>'}).join("")}
+
+function render(){$("clockTxt").textContent=fmtTime(S.min);renderSummary();renderList();renderDetail();renderLog()}
+
+/* ---------- Eventos ---------- */
+$("list").addEventListener("click",function(ev){var b=ev.target.closest("[data-eq]");if(!b)return;S.sel=b.dataset.eq;
+  try{localStorage.setItem("centinela-sel",S.sel)}catch(_){ }render()});
+$("detail").addEventListener("click",function(ev){var b=ev.target.closest("[data-act]");if(!b)return;
+  var e=EQUIP.find(function(x){return x.id===S.sel}),T=TYPES[e.t],st=S.eq[e.id];
+  if(b.dataset.act==="fault"){applyFault(e,T.faults[Math.floor(Math.random()*T.faults.length)])}
+  else{T.params.forEach(function(p){st.drift[p.k]=0;st.off[p.k]=p.reset!=null?p.reset:0;st.h[p.k]=[]});
+    st.faultWhy=null;st.last=st.last.map(function(){return S.min});addLog(0,e,null,"Mantenimiento registrado: parámetros y tareas restablecidos");
+    for(var i=0;i<10;i++)step(0.01)}
+  evaluate();render()});
+$("log").addEventListener("click",function(ev){var b=ev.target.closest("[data-ack]");if(!b)return;
+  var a=S.log.find(function(x){return x.id==b.dataset.ack});if(a)a.ack=true;render()});
+$("ackAll").addEventListener("click",function(){S.log.forEach(function(a){a.ack=true});render()});
+$("rate").addEventListener("change",function(){S.rate=+this.value});
+$("pause").addEventListener("click",function(){S.paused=!S.paused;this.textContent=S.paused?"Reanudar":"Pausar";
+  $("clock").classList.toggle("live",!S.paused);$("clock").classList.toggle("paused",S.paused)});
+window.addEventListener("resize",function(){drawSparks(EQUIP.find(function(x){return x.id===S.sel}))});
+
+/* ---------- Arranque: historia previa y bucle ---------- */
+try{var saved=localStorage.getItem("centinela-sel");if(saved&&S.eq[saved])S.sel=saved}catch(_){ }
+for(var i=0;i<HIST;i++){step(15);evaluate()}
+S.log.forEach(function(a){a.ack=a.L===0});
+render();
+setInterval(function(){if(S.paused)return;step(S.rate);evaluate();render()},1500);
+})();
+</script>

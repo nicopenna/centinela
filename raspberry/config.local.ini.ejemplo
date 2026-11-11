@@ -1,0 +1,15 @@
+# =====================================================================
+#  Configuracion PRIVADA de esta Raspberry (no se sube a GitHub)
+#  1) Copia este archivo:   cp config.local.ini.ejemplo config.local.ini
+#  2) Completa lo que haga falta. Todo lo que pongas aca pisa a config.ini.
+#  3) sudo systemctl restart centinela
+# =====================================================================
+
+[telegram]
+token =
+chat_ids =
+
+# Calibracion de este tanque / balde (ver LEEME.md, paso 6)
+[nivel]
+# distancia_vacio_cm = 38
+# distancia_lleno_cm = 6

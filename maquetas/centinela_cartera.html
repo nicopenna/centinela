@@ -1,0 +1,578 @@
+<title>Centinela de Equipos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: consola de cartera. Resumen arriba; cartera de edificios | edificio con sus equipos | ficha del equipo; abajo bitácora y vencimientos legales */
+:root{
+  --bg:#eef2f4; --panel:#ffffff; --sunk:#e5ebee; --line:#cfd8dd; --fg:#16252d; --muted:#5a6d77;
+  --accent:#1d5d78; --accent-soft:#d6e7ef;
+  --ok:#2f7d4f; --ok-soft:#dcefe3; --warn:#b26a00; --warn-soft:#fbecd2; --crit:#c0322b; --crit-soft:#f8dcda; --trend:#3d5fc4; --trend-soft:#e0e6fa;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --trend:#8ea6ff; --trend-soft:#232e55; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f171c; --panel:#162229; --sunk:#1c2b33; --line:#2b3d47; --fg:#e2eaee; --muted:#8fa3ad;
+  --accent:#6fb4d3; --accent-soft:#1d3a48;
+  --ok:#5cbf83; --ok-soft:#173826; --warn:#f0a63a; --warn-soft:#3d2c10; --crit:#f2675f; --crit-soft:#451c1a; --trend:#8ea6ff; --trend-soft:#232e55; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45}
+.wrap{max-width:1500px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+h1,h2{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:32px;line-height:1}
+h2{font-size:24px;line-height:1.1}
+h3{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+.num,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 12px;font-weight:500}
+button:hover{border-color:var(--accent)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+select{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 8px}
+.note{font-size:12px;color:var(--muted)}
+
+/* Encabezado */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.brand small{display:block;color:var(--muted);font-size:13px;margin-top:5px}
+.demo{display:inline-block;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:12px;border-radius:6px;padding:3px 8px;margin-left:6px;vertical-align:2px;font-family:var(--f-body)}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.clock{font-family:var(--f-mono);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px;display:flex;gap:8px;align-items:center}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.paused .pulse{background:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.live .pulse{animation:p 1.5s infinite}@keyframes p{50%{opacity:.25}}}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;border-radius:0;padding:7px 12px;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--panel)}
+
+/* Resumen */
+.summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.stat b{font-family:var(--f-display);font-size:36px;line-height:1.05;font-weight:600}
+.stat small{font-size:12px;color:var(--muted)}
+.stat.ok b{color:var(--ok)} .stat.trend b{color:var(--trend)} .stat.warn b{color:var(--warn)} .stat.crit b{color:var(--crit)}
+@media (max-width:1100px){.summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.stat b{font-size:30px}}
+
+/* Cuerpo */
+.main{display:grid;gap:16px;align-items:start;grid-template-columns:minmax(260px,320px) minmax(0,1.25fr) minmax(0,1fr);grid-template-areas:"list bld det"}
+@media (max-width:1240px){.main{grid-template-columns:minmax(240px,290px) minmax(0,1fr);grid-template-areas:"list bld" "det det"}}
+@media (max-width:780px){.main{grid-template-columns:minmax(0,1fr);grid-template-areas:"list" "bld" "det"}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:14px;scroll-margin-top:12px}
+#list{grid-area:list} #bld{grid-area:bld} #det{grid-area:det}
+
+/* Cartera */
+.blist{display:flex;flex-direction:column;gap:6px}
+.bitem{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:2px 10px;align-items:center;text-align:left;width:100%;padding:9px 11px;border-radius:8px;border:1px solid transparent;background:transparent}
+.bitem:hover{border-color:var(--line);background:var(--sunk)}
+.bitem.sel{border-color:var(--accent);background:var(--accent-soft)}
+.bitem .dot{grid-row:span 2;align-self:start;margin-top:4px}
+.bitem .nm{font-weight:600;min-width:0;line-height:1.25}
+.bitem .sub{grid-column:2 / 4;font-size:12px;color:var(--muted);min-width:0}
+.kind{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-right:6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.dot.s0{background:var(--ok)} .chip.s0{background:var(--ok-soft);color:var(--ok)}
+.dot.s1{background:var(--trend)} .chip.s1{background:var(--trend-soft);color:var(--trend)}
+.dot.s2{background:var(--warn)} .chip.s2{background:var(--warn-soft);color:var(--warn)}
+.dot.s3{background:var(--crit)} .chip.s3{background:var(--crit-soft);color:var(--crit)}
+.chip.info{background:var(--accent-soft);color:var(--accent)}
+
+/* Edificio */
+.bhead{display:flex;flex-direction:column;gap:5px}
+.bhead h2{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bhead .meta{color:var(--muted);font-size:13px}
+.ready{display:flex;gap:10px;align-items:center;border-radius:8px;padding:8px 12px;font-size:13px}
+.ready.s0{background:var(--ok-soft)} .ready.s2{background:var(--warn-soft)} .ready.s3{background:var(--crit-soft)}
+.ready b{font-weight:600}
+.tgroup{display:flex;flex-direction:column;gap:7px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.card{display:flex;flex-direction:column;gap:2px;text-align:left;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);min-width:0}
+.card:hover{border-color:var(--accent)}
+.card.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.card.s3{border-color:var(--crit)}
+.card .nm{display:flex;gap:7px;align-items:center;font-weight:600;min-width:0}
+.card .nm{align-items:flex-start;line-height:1.25}.card .nm .dot{margin-top:4px}
+.card .pl{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.card .v{font-family:var(--f-display);font-size:26px;font-weight:600;line-height:1;white-space:nowrap}
+.card .v small{font-family:var(--f-body);font-size:11px;color:var(--muted);font-weight:400;margin-left:2px}
+.card.s2 .v{color:var(--warn)} .card.s3 .v{color:var(--crit)} .card.s1 .v{color:var(--trend)}
+canvas.mini{width:62%;height:30px;display:block}
+.tasks{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.task{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:13px}
+.task:first-child{border-top:0}
+.task .when{color:var(--muted);font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+@media (max-width:480px){.task{grid-template-columns:minmax(0,1fr) auto}.task .when{grid-column:1;grid-row:2}}
+
+/* Ficha del equipo */
+.dhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:flex-start}
+.dhead h2{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dhead .meta{color:var(--muted);font-size:13px;margin-top:4px}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.cause{background:var(--warn-soft);border-radius:8px;padding:9px 12px;font-size:13px}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0;padding-top:0}
+.prow .lbl{font-weight:500;min-width:0}
+.prow .lbl small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.prow .val{font-family:var(--f-display);font-size:28px;font-weight:600;line-height:1;white-space:nowrap;text-align:right}
+.prow .val small{font-family:var(--f-body);font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.prow.l1 .val{color:var(--trend)} .prow.l2 .val{color:var(--warn)} .prow.l3 .val{color:var(--crit)}
+.prow .viz{grid-column:1 / -1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center}
+@media (max-width:480px){.prow .viz{grid-template-columns:minmax(0,1fr)}}
+.gauge{display:flex;flex-direction:column;gap:4px}
+.gwrap{position:relative;padding-block:3px}
+.track{position:relative;height:8px;border-radius:4px;background:var(--ok-soft);overflow:hidden}
+.zone{position:absolute;top:0;bottom:0}
+.zone.w{background:var(--warn-soft)} .zone.c{background:var(--crit-soft)}
+.mark{position:absolute;top:0;width:3px;height:14px;background:var(--fg);border-radius:2px;transform:translateX(-50%)}
+.lims{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+canvas.spark{width:100%;height:40px;display:block}
+.fc{font-size:12px;color:var(--muted)}
+.fc.t{color:var(--trend);font-weight:500}
+.advice{grid-column:1 / -1;font-size:13px;background:var(--sunk);border-radius:6px;padding:7px 10px}
+
+/* Bitácora y vencimientos */
+.bottom{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1000px){.bottom{grid-template-columns:minmax(0,1fr)}}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.log{display:flex;flex-direction:column;max-height:360px;overflow-y:auto}
+.li{display:grid;grid-template-columns:92px 96px minmax(0,1fr) minmax(0,170px) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.li:first-child{border-top:0}
+.li.ack{opacity:.55}
+.li .t{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.li .msg{min-width:0}
+.li .msg b{font-weight:600}
+.li .who{font-size:12px;color:var(--muted)}
+.li .who.esc{color:var(--crit);font-weight:600}
+.li button{padding:3px 9px;font-size:12px}
+@media (max-width:700px){.li{grid-template-columns:auto minmax(0,1fr)}.li .msg,.li .who{grid-column:1 / -1}.li button{grid-column:1 / -1;justify-self:start}}
+.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.legal{display:flex;flex-direction:column}
+.lg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:8px 0;border-top:1px solid var(--line);font-size:13px;align-items:center}
+.lg:first-child{border-top:0}
+.lg .who{grid-column:1 / -1;font-size:12px;color:var(--muted)}
+
+details.guide{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+details.guide summary{cursor:pointer;font-weight:600}
+details.guide p,details.guide li{max-width:78ch}
+details.guide ul{padding-left:20px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
+</style>
+
+<div class="wrap" id="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Centinela de Equipos <span class="demo">Demo con datos simulados</span></h1>
+      <small>Alerta temprana y mantenimiento preventivo para escuelas y consorcios de la Ciudad de Buenos Aires</small>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Cartera">
+        <button type="button" data-f="all" aria-pressed="true">Todos</button>
+        <button type="button" data-f="escuela" aria-pressed="false">Escuelas</button>
+        <button type="button" data-f="consorcio" aria-pressed="false">Consorcios</button>
+      </div>
+      <div class="clock live" id="clock"><span class="pulse"></span><span id="clockTxt">—</span></div>
+      <label class="note" for="rate">Velocidad
+        <select id="rate">
+          <option value="1">1 min por lectura</option>
+          <option value="15" selected>15 min por lectura</option>
+          <option value="60">1 h por lectura</option>
+        </select>
+      </label>
+      <button id="pause" type="button">Pausar</button>
+    </div>
+  </header>
+
+  <section class="summary" id="summary" aria-label="Resumen de la cartera"></section>
+
+  <section class="main">
+    <nav class="panel" id="list" aria-label="Edificios"></nav>
+    <article class="panel" id="bld" aria-label="Edificio"></article>
+    <article class="panel" id="det" aria-label="Equipo" aria-live="polite"></article>
+  </section>
+
+  <section class="bottom">
+    <div class="panel">
+      <div class="phead"><h3 id="logTitle">Bitácora de alertas</h3><button id="ackAll" type="button">Reconocer todas</button></div>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="panel">
+      <h3>Vencimientos legales y preventivos</h3>
+      <div class="legal" id="legal"></div>
+    </div>
+  </section>
+
+  <details class="guide">
+    <summary>Cómo funciona y qué hace falta instalar</summary>
+    <p>Cada equipo lleva sensores simples: pinza de corriente, acelerómetro, sonda de temperatura y transductor de presión en bombas y calderas; sensor de nivel en tanques; lectura del controlador en ascensores. Un nodo en la sala de máquinas (ESP32 o gateway Modbus) publica una lectura por parámetro cada 1 a 60 segundos. El panel compara cada lectura con umbrales de referencia, calcula la tendencia y avisa antes de que el equipo falle.</p>
+    <ul>
+      <li><strong>Normal</strong>: dentro de rango. <strong>Tendencia</strong>: todavía en rango, pero cruza el umbral de atención en menos de 24 horas al ritmo actual. <strong>Atención</strong> y <strong>Crítico</strong>: fuera de rango.</li>
+      <li>El edificio toma el peor estado de sus equipos. En escuelas, el panel indica si el edificio está en condiciones para el ingreso: calefacción, presión de agua y tanques.</li>
+      <li>Cloro y turbidez del tanque se cargan por muestreo, con kit o fotómetro, después de cada medición.</li>
+      <li>Probá <strong>Simular falla</strong> en cualquier equipo para ver cómo aparece la tendencia, la alerta y el aviso al responsable.</li>
+    </ul>
+  </details>
+  <div class="foot"><span>Edificios, equipos y lecturas son de ejemplo. No corresponden a establecimientos reales.</span><span>Umbrales según la especificación técnica de Centinela</span></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var TYPES = {
+  caldera:{name:"Calderas", params:[
+    {k:"tIda",l:"Temperatura de ida",u:"°C",base:75,n:.6,min:40,max:110,hi:[85,95],d:1,s:"Sonda PT100 en caño de ida"},
+    {k:"pres",l:"Presión del circuito",u:"bar",base:1.5,n:.02,min:0,max:3.5,lo:[.8,.5],hi:[2.5,3],d:2,s:"Transductor 4–20 mA, 0–6 bar"},
+    {k:"tHumos",l:"Temperatura de humos",u:"°C",base:165,n:2,min:80,max:280,hi:[200,240],d:0,s:"Termocupla tipo K en conducto"},
+    {k:"co",l:"CO en la sala",u:"ppm",base:4,n:.8,min:0,max:150,hi:[35,100],d:0,floor:0,s:"Detector de CO electroquímico"},
+    {k:"o2",l:"O₂ en humos",u:"%",base:4.5,n:.12,min:0,max:12,lo:[2.5,1.5],hi:[7.5,9],d:1,s:"Analizador de combustión (muestreo)"}],
+    faults:[
+      {why:"Pérdida de agua en el circuito o vaso de expansión desinflado",dr:{pres:-.0011}},
+      {why:"Intercambiador con hollín: baja la eficiencia",dr:{tHumos:.05,o2:.0008}},
+      {why:"Combustión deficiente o tiraje obstruido",dr:{co:.05,o2:-.0007}}],
+    advice:{tIda:"Verificar termostato y bomba circuladora.",pres:{lo:"Reponer agua, buscar pérdidas y revisar el vaso de expansión.",hi:"Revisar vaso de expansión y válvula de seguridad."},tHumos:"Programar limpieza del intercambiador y del quemador.",co:"Ventilar la sala y revisar tiraje y quemador de inmediato.",o2:{lo:"Falta de aire de combustión: riesgo de CO. Ajustar el quemador.",hi:"Exceso de aire: se pierde rendimiento. Ajustar el quemador."}},
+    tasks:[["Limpieza de quemador e intercambiador",180],["Análisis de combustión",180],["Prueba de válvula de seguridad",90],["Revisión del vaso de expansión",365]]},
+  termo:{name:"Termotanques", params:[
+    {k:"tAgua",l:"Temperatura del agua",u:"°C",base:56,n:.4,min:20,max:95,lo:[48,42],hi:[68,80],d:1,s:"Sonda NTC en vaina"},
+    {k:"pres",l:"Presión interna",u:"bar",base:3.5,n:.04,min:0,max:10,hi:[6,8],d:1,s:"Transductor de presión 0–10 bar"},
+    {k:"recup",l:"Tiempo de recuperación",u:"min",base:35,n:.8,min:0,max:120,hi:[50,70],d:0,s:"Calculado: tiempo para recuperar 20 °C"},
+    {k:"anodo",l:"Vida estimada del ánodo",u:"%",base:0,n:0,min:0,max:100,lo:[30,10],d:0,rate:-1/1440,reset:100,s:"Estimado por calendario y dureza del agua"}],
+    faults:[
+      {why:"Sarro acumulado en el fondo del tanque",dr:{recup:.02}},
+      {why:"Termostato descalibrado",dr:{tAgua:.008}},
+      {why:"Válvula de alivio trabada o sobrepresión de red",dr:{pres:.0018}}],
+    advice:{tAgua:{lo:"Por debajo de 50 °C aumenta el riesgo de legionela. Revisar termostato y llama.",hi:"Riesgo de quemaduras y sobrepresión. Revisar termostato y válvula de alivio."},pres:"Probar la válvula de alivio y revisar la presión de red.",recup:"Purgar sedimentos y revisar el quemador o la resistencia.",anodo:"Reemplazar el ánodo de magnesio para evitar corrosión del tanque."},
+    tasks:[["Purga de sedimentos",180],["Prueba de válvula de alivio",180],["Inspección del ánodo de magnesio",365],["Control de llama y piloto",90]]},
+  bomba:{name:"Bombas de agua", params:[
+    {k:"pDesc",l:"Presión de descarga",u:"bar",base:4.2,n:.05,min:0,max:8,lo:[3.2,2.5],hi:[6,7],d:1,s:"Transductor 4–20 mA en la descarga"},
+    {k:"corr",l:"Corriente del motor",u:"A",base:8.5,n:.1,min:0,max:16,hi:[10,11.5],d:1,s:"Transformador de corriente (pinza)"},
+    {k:"vib",l:"Vibración (RMS)",u:"mm/s",base:1.9,n:.08,min:0,max:12,hi:[4.5,7.1],d:1,floor:0,s:"Acelerómetro en carcasa del rodamiento"},
+    {k:"tRod",l:"Temperatura de rodamientos",u:"°C",base:52,n:.4,min:20,max:110,hi:[80,95],d:0,s:"Sonda PT100 o termómetro IR"},
+    {k:"arr",l:"Arranques por hora",u:"/h",base:4,n:.5,min:0,max:25,hi:[10,15],d:0,floor:0,s:"Contador desde el contactor"}],
+    faults:[
+      {why:"Desgaste de rodamientos o desbalanceo del impulsor",dr:{vib:.0028,tRod:.018}},
+      {why:"Sobrecarga del motor o sello mecánico que roza",dr:{corr:.0018,tRod:.012}},
+      {why:"Tanque hidroneumático sin aire o presostato desajustado",dr:{arr:.008}},
+      {why:"Cavitación o impulsor gastado",dr:{pDesc:-.0012,vib:.001}}],
+    advice:{pDesc:{lo:"Revisar succión, filtros y desgaste del impulsor.",hi:"Revisar válvulas cerradas aguas abajo y el presostato."},corr:"Medir aislación y revisar el sello mecánico y la alineación.",vib:"Según ISO 10816, sobre 4,5 mm/s conviene programar cambio de rodamientos y alineación.",tRod:"Lubricar y verificar rodamientos antes de que se dañe el eje.",arr:"Demasiados arranques recalientan el motor. Recargar aire del tanque hidroneumático."},
+    tasks:[["Lubricación de rodamientos",90],["Revisión del sello mecánico",180],["Alineación y anclajes",365],["Medición de aislación del motor",365]]},
+  ascensor:{name:"Motores de ascensor", params:[
+    {k:"tMot",l:"Temperatura del bobinado",u:"°C",base:62,n:.5,min:20,max:150,hi:[100,120],d:0,s:"PT100 o termistor PTC del motor"},
+    {k:"corr",l:"Corriente en marcha",u:"A",base:18,n:.35,min:0,max:40,hi:[24,28],d:1,s:"Transformador de corriente en el variador"},
+    {k:"vib",l:"Vibración de la máquina",u:"mm/s",base:1.4,n:.07,min:0,max:10,hi:[3.5,5.5],d:1,floor:0,s:"Acelerómetro en la máquina de tracción"},
+    {k:"niv",l:"Error de nivelación",u:"mm",base:3,n:.5,min:0,max:30,hi:[10,18],d:1,floor:0,s:"Encoder o sensor de piso"},
+    {k:"puerta",l:"Fallas de puerta por día",u:"",base:.5,n:.3,min:0,max:15,hi:[4,8],d:0,floor:0,s:"Registro del controlador"},
+    {k:"tSala",l:"Temperatura de sala de máquinas",u:"°C",base:28,n:.3,min:10,max:50,hi:[35,40],d:1,s:"Sensor de ambiente"}],
+    faults:[
+      {why:"Freno que roza o sobrecarga de la cabina",dr:{tMot:.025,corr:.0025}},
+      {why:"Desgaste de cables, poleas o zapatas de freno",dr:{niv:.006,vib:.0012}},
+      {why:"Patín o operador de puerta desajustado",dr:{puerta:.0045}},
+      {why:"Ventilación de la sala de máquinas insuficiente",dr:{tSala:.008,tMot:.01}}],
+    advice:{tMot:"Revisar freno, ventilación del motor y carga de la cabina.",corr:"Revisar contrapeso, freno y guías.",vib:"Inspeccionar rodamientos de la máquina, poleas y cables.",niv:"Revisar freno y encoder. Un escalón alto es riesgo de caída.",puerta:"Ajustar operador de puerta, patines y contactos.",tSala:"Mejorar ventilación o instalar extractor en la sala de máquinas."},
+    tasks:[["Mantenimiento mensual del conservador",30],["Lubricación de guías",30],["Inspección de cables y poleas",180],["Prueba de paracaídas y limitador",365]]},
+  tanque:{name:"Tanques de agua", params:[
+    {k:"nivel",l:"Nivel",u:"%",base:76,n:.3,min:0,max:100,lo:[35,20],hi:[97,99.5],d:0,wave:[10,720],s:"Sensor ultrasónico o de presión hidrostática"},
+    {k:"cloro",l:"Cloro residual libre",u:"mg/L",base:.45,n:.012,min:0,max:1.2,lo:[.2,.1],hi:[.8,1],d:2,floor:0,s:"Kit DPD o sonda amperométrica (muestreo)"},
+    {k:"turb",l:"Turbidez",u:"NTU",base:.4,n:.04,min:0,max:5,hi:[1,3],d:1,floor:0,s:"Turbidímetro (muestreo)"},
+    {k:"tAgua",l:"Temperatura del agua",u:"°C",base:21,n:.15,min:0,max:40,hi:[25,30],d:1,s:"Sonda sumergible"},
+    {k:"dLimp",l:"Días desde la última limpieza",u:"d",base:0,n:0,min:0,max:200,hi:[150,180],d:0,rate:1/1440,reset:0,s:"Registro de limpieza"}],
+    faults:[
+      {why:"Consumo de cloro sin reposición",dr:{cloro:-.00016}},
+      {why:"Flotante trabado o bomba de llenado detenida",dr:{nivel:-.03}},
+      {why:"Sedimentos en el fondo: el tanque necesita limpieza",dr:{turb:.0018,cloro:-.00006}}],
+    advice:{nivel:{lo:"Verificar bombas elevadoras, flotante y válvula de llenado.",hi:"Revisar flotante y ruptor: riesgo de rebalse."},cloro:{lo:"Con menos de 0,2 mg/L el agua pierde protección bacteriológica. Dosificar cloro y tomar muestra.",hi:"Exceso de cloro: revisar el dosificador."},turb:"Programar limpieza y desinfección del tanque.",tAgua:"Agua tibia favorece bacterias. Revisar aislación y tapa del tanque.",dLimp:"La limpieza y desinfección se recomienda cada 6 meses."},
+    tasks:[["Limpieza y desinfección",180],["Análisis bacteriológico",180],["Revisión de flotantes, tapas y ventilación",90]]}
+};
+
+/* ---------- Cartera de ejemplo ---------- */
+// semilla fija: la demo arranca igual cada vez
+var seed=20261031;function rnd(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+function lastDays(t){return TYPES[t].tasks.map(function(x){return Math.round(rnd()*x[1]*.85)})}
+function E(k,t,name,loc,o){o=o||{};return {k:k,t:t,name:name,loc:loc,run:o.run!=null?o.run:(t==="tanque"?0:Math.round(4000+rnd()*24000)),last:o.last||lastDays(t),start:o.start,fault:o.fault,faultAge:o.faultAge}}
+
+var BUILDINGS=[
+ {id:"esc-patricios",kind:"escuela",name:"Escuela Técnica Parque Patricios",area:"Parque Patricios",meta:"Media técnica · 3 turnos · 780 alumnos · talleres en subsuelo",resp:"Empresa de mantenimiento zonal",esc:"Supervisión de infraestructura",
+  eq:[E("CAL-01","caldera","Caldera 1","Sala de calderas, subsuelo"),E("CAL-02","caldera","Caldera 2","Sala de calderas, subsuelo",{fault:0,faultAge:1000}),
+      E("TT-01","termo","Termotanque vestuarios","Vestuarios de talleres",{start:{anodo:62}}),E("BOM-01","bomba","Bomba elevadora 1","Sala de bombas"),E("BOM-02","bomba","Bomba elevadora 2","Sala de bombas"),
+      E("ASC-01","ascensor","Ascensor accesible","Sala de máquinas, azotea"),E("TQ-01","tanque","Tanque de reserva","Azotea, 15.000 L",{start:{dLimp:96}}),E("TQ-02","tanque","Cisterna","Subsuelo, 40.000 L",{start:{dLimp:96}})],
+  legal:[["Limpieza y desinfección de tanques","Ley 6040",84],["Análisis bacteriológico del agua","Ley 6040",22],["Inspección anual de calderas","Caldera 1 y 2",41],["Libro de inspección del ascensor","Conservadora",15]]},
+ {id:"esc-barracas",kind:"escuela",name:"Escuela Primaria Barracas",area:"Barracas",meta:"Primaria de jornada completa · 420 alumnos · comedor",resp:"Empresa de mantenimiento zonal",esc:"Supervisión de infraestructura",
+  eq:[E("CAL-01","caldera","Caldera central","Sala de máquinas, PB"),E("TT-01","termo","Termotanque comedor","Cocina del comedor",{start:{anodo:28}}),E("BOM-01","bomba","Bomba elevadora","Sala de bombas",{fault:0,faultAge:700,last:[104,120,200,90]}),
+      E("TQ-01","tanque","Tanque de reserva","Azotea, 10.000 L",{start:{dLimp:150}}),E("TQ-02","tanque","Cisterna","Patio, 20.000 L",{start:{dLimp:150}})],
+  legal:[["Limpieza y desinfección de tanques","Ley 6040",-6],["Análisis bacteriológico del agua","Ley 6040",-6],["Revisión de artefactos a gas del comedor","Gas",58]]},
+ {id:"esc-lugano",kind:"escuela",name:"Escuela Media Villa Lugano",area:"Villa Lugano",meta:"Secundaria · 2 turnos · 610 alumnos · edificio de 4 plantas",resp:"Empresa de mantenimiento zonal",esc:"Supervisión de infraestructura",
+  eq:[E("CAL-01","caldera","Caldera 1","Sala de calderas"),E("CAL-02","caldera","Caldera 2","Sala de calderas"),E("BOM-01","bomba","Bomba elevadora 1","Sala de bombas"),E("BOM-02","bomba","Bomba presurizadora","Sala de bombas"),
+      E("ASC-01","ascensor","Ascensor accesible","Sala de máquinas, azotea",{fault:2,faultAge:500}),E("TQ-01","tanque","Tanque de reserva","Azotea, 20.000 L",{start:{dLimp:40}})],
+  legal:[["Libro de inspección del ascensor","Conservadora",-3],["Limpieza y desinfección de tanques","Ley 6040",140],["Inspección anual de calderas","Caldera 1 y 2",120]]},
+ {id:"esc-flores",kind:"escuela",name:"Jardín de Infantes Flores",area:"Flores",meta:"Nivel inicial · 2 turnos · 190 alumnos",resp:"Empresa de mantenimiento zonal",esc:"Supervisión de infraestructura",
+  eq:[E("CAL-01","caldera","Caldera mural","Cocina"),E("TT-01","termo","Termotanque sanitarios","Sanitarios",{fault:0,faultAge:1300,start:{anodo:44}}),E("BOM-01","bomba","Bomba presurizadora","Patio de servicio"),E("TQ-01","tanque","Tanque de reserva","Azotea, 5.000 L",{start:{dLimp:70}})],
+  legal:[["Análisis bacteriológico del agua","Ley 6040",35],["Revisión de artefactos a gas","Gas",9]]},
+ {id:"esc-mataderos",kind:"escuela",name:"Escuela Primaria Mataderos",area:"Mataderos",meta:"Primaria · 2 turnos · 350 alumnos · comedor",resp:"Empresa de mantenimiento zonal",esc:"Supervisión de infraestructura",
+  eq:[E("CAL-01","caldera","Caldera central","Sala de máquinas"),E("TT-01","termo","Termotanque comedor","Cocina del comedor",{start:{anodo:71}}),E("BOM-01","bomba","Bomba elevadora","Sala de bombas"),
+      E("TQ-01","tanque","Tanque de reserva","Azotea, 10.000 L",{fault:0,faultAge:1500,start:{dLimp:110}}),E("TQ-02","tanque","Cisterna","Subsuelo, 15.000 L",{start:{dLimp:110}})],
+  legal:[["Limpieza y desinfección de tanques","Ley 6040",70],["Inspección anual de calderas","Caldera central",26]]},
+ {id:"cons-rivadavia",kind:"consorcio",name:"Rivadavia 4520",area:"Caballito",meta:"Consorcio · 14 pisos · 42 unidades · encargado turno mañana",resp:"Administración y encargado",esc:"Administrador",
+  eq:[E("CAL-01","caldera","Caldera 1","Sala de máquinas, subsuelo"),E("CAL-02","caldera","Caldera 2","Sala de máquinas, subsuelo",{fault:2,faultAge:900}),E("TT-01","termo","Termotanque central","Sala de máquinas",{start:{anodo:55}}),
+      E("BOM-01","bomba","Bomba elevadora 1","Sala de bombas"),E("BOM-02","bomba","Bomba elevadora 2","Sala de bombas",{fault:0,faultAge:1000,last:[97,160,300,300]}),E("BOM-03","bomba","Presurizadora","Azotea"),
+      E("ASC-01","ascensor","Ascensor principal","Sala de máquinas, azotea"),E("ASC-02","ascensor","Ascensor de servicio","Sala de máquinas, azotea"),
+      E("TQ-01","tanque","Tanque de reserva","Azotea, 20.000 L",{start:{dLimp:120}}),E("TQ-02","tanque","Cisterna","Subsuelo, 30.000 L",{start:{dLimp:120}})],
+  legal:[["Análisis bacteriológico del agua","Ley 6040",-12],["Limpieza y desinfección de tanques","Ley 6040",60],["Libro de inspección de ascensores","Conservadora",62]]},
+ {id:"cons-juncal",kind:"consorcio",name:"Juncal 1830",area:"Recoleta",meta:"Consorcio · 9 pisos · 18 unidades",resp:"Administración y encargado",esc:"Administrador",
+  eq:[E("CAL-01","caldera","Caldera central","Subsuelo"),E("BOM-01","bomba","Bomba elevadora 1","Sala de bombas"),E("BOM-02","bomba","Bomba elevadora 2","Sala de bombas"),
+      E("ASC-01","ascensor","Ascensor principal","Sala de máquinas, azotea",{fault:0,faultAge:1400}),E("ASC-02","ascensor","Ascensor de servicio","Sala de máquinas, azotea"),E("TQ-01","tanque","Tanque de reserva","Azotea, 12.000 L",{start:{dLimp:30}})],
+  legal:[["Libro de inspección de ascensores","Conservadora",-1],["Análisis bacteriológico del agua","Ley 6040",150]]},
+ {id:"cons-cabildo",kind:"consorcio",name:"Cabildo 2211",area:"Belgrano",meta:"Consorcio · 12 pisos · 36 unidades",resp:"Administración y encargado",esc:"Administrador",
+  eq:[E("CAL-01","caldera","Caldera central","Subsuelo"),E("TT-01","termo","Termotanque central","Subsuelo",{fault:1,faultAge:1200,start:{anodo:40}}),E("BOM-01","bomba","Bomba elevadora 1","Sala de bombas"),E("BOM-02","bomba","Bomba elevadora 2","Sala de bombas"),
+      E("ASC-01","ascensor","Ascensor principal","Sala de máquinas, azotea"),E("TQ-01","tanque","Tanque de reserva","Azotea, 18.000 L",{start:{dLimp:20}})],
+  legal:[["Limpieza y desinfección de tanques","Ley 6040",160],["Revisión de artefactos a gas","Gas",33]]},
+ {id:"cons-corrientes",kind:"consorcio",name:"Av. Corrientes 3412",area:"Almagro",meta:"Consorcio · 10 pisos · 30 unidades · locales en PB",resp:"Administración y encargado",esc:"Administrador",
+  eq:[E("TT-01","termo","Termotanque central","Azotea",{start:{anodo:80}}),E("BOM-01","bomba","Bomba elevadora 1","Sala de bombas"),E("BOM-02","bomba","Bomba elevadora 2","Sala de bombas"),
+      E("ASC-01","ascensor","Ascensor principal","Sala de máquinas, azotea"),E("TQ-01","tanque","Tanque de reserva","Azotea, 15.000 L",{start:{dLimp:50}}),E("TQ-02","tanque","Cisterna","Subsuelo, 20.000 L",{start:{dLimp:50}})],
+  legal:[["Análisis bacteriológico del agua","Ley 6040",130],["Libro de inspección de ascensores","Conservadora",24]]},
+ {id:"cons-gascon",kind:"consorcio",name:"Gascón 715",area:"Almagro",meta:"Consorcio · 7 pisos · 14 unidades",resp:"Administración y encargado",esc:"Administrador",
+  eq:[E("CAL-01","caldera","Caldera central","Subsuelo"),E("BOM-01","bomba","Bomba elevadora","Sala de bombas",{fault:2,faultAge:400,last:[60,190,100,100]}),E("ASC-01","ascensor","Ascensor","Sala de máquinas, azotea"),E("TQ-01","tanque","Tanque de reserva","Azotea, 8.000 L",{start:{dLimp:100}})],
+  legal:[["Limpieza y desinfección de tanques","Ley 6040",80],["Revisión de artefactos a gas","Gas",-20]]}
+];
+
+var EQUIP=[],BY={};
+BUILDINGS.forEach(function(b){b.eq.forEach(function(e){e.g=b.id+"/"+e.k;e.b=b;EQUIP.push(e);BY[e.g]=e})});
+var KIND={escuela:"Escuela",consorcio:"Consorcio"};
+var KEY={caldera:"pres",termo:"tAgua",bomba:"vib",ascensor:"tMot",tanque:"nivel"};
+
+var LVL_TXT=["Normal","Tendencia","Atención","Crítico"];
+var NOW=new Date();NOW.setSeconds(0,0);
+var HIST=96, START=NOW.getTime()-HIST*15*60000;
+var S={min:0,rate:15,paused:false,filter:"all",bsel:"esc-patricios",sel:"esc-patricios/CAL-02",log:[],seq:0,eq:{}};
+
+function gauss(){var u=1-Math.random(),v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function fmtNum(v,d){return v.toLocaleString("es-AR",{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fmtTime(min,full){var dt=new Date(START+min*60000),hh=String(dt.getHours()).padStart(2,"0")+":"+String(dt.getMinutes()).padStart(2,"0");
+  if(!full)return String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0")+" "+hh;
+  return ["dom","lun","mar","mié","jue","vie","sáb"][dt.getDay()]+" "+String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0")+"/"+dt.getFullYear()+" "+hh}
+function fmtDur(min){if(min<60)return Math.round(min)+" min";var h=min/60;if(h<48)return "~"+Math.round(h)+" h";return "~"+Math.round(h/24)+" días"}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function level(p,v){if(p.hi){if(v>=p.hi[1])return 3;if(v>=p.hi[0])return 2}if(p.lo){if(v<=p.lo[1])return 3;if(v<=p.lo[0])return 2}return 0}
+function lc(t){return /^[A-ZÁÉÍÓÚ][a-záéíóúñ]/.test(t)?t.charAt(0).toLowerCase()+t.slice(1):t}
+function inF(b){return S.filter==="all"||b.kind===S.filter}
+
+/* ---------- Estado inicial ---------- */
+EQUIP.forEach(function(e){
+  var T=TYPES[e.t],st={off:{},drift:{},v:{},h:{},lvl:{},pred:{},prevL:{},prevT:{},faultWhy:null,last:[],runBase:e.run};
+  T.params.forEach(function(p){st.off[p.k]=e.start&&e.start[p.k]!=null?e.start[p.k]:0;st.drift[p.k]=0;st.h[p.k]=[];st.prevL[p.k]=0;st.prevT[p.k]=false});st.tLog={};
+  st.last=T.tasks.map(function(t,i){return -(e.last[i]||0)*1440});
+  S.eq[e.g]=st;
+  if(e.fault!=null){applyFault(e,T.faults[e.fault],true);
+    // la falla empezó antes de la ventana visible
+    T.params.forEach(function(p){st.off[p.k]+=st.drift[p.k]*(e.faultAge-HIST*15)})}
+});
+function applyFault(e,f,silent){var st=S.eq[e.g];Object.keys(f.dr).forEach(function(k){st.drift[k]+=f.dr[k]});st.faultWhy=f.why;
+  if(!silent)addLog(1,e,"Falla simulada para la demo: "+f.why.toLowerCase()+".",true)}
+
+/* ---------- Simulación ---------- */
+function step(dm){
+  S.min+=dm;
+  EQUIP.forEach(function(e){var T=TYPES[e.t],st=S.eq[e.g];
+    T.params.forEach(function(p){
+      st.off[p.k]+=(st.drift[p.k]+(p.rate||0))*dm;
+      var v=p.base+st.off[p.k]+p.n*gauss();
+      if(p.wave)v+=p.wave[0]*Math.sin(2*Math.PI*(S.min+e.g.length*37)/p.wave[1]);
+      if(p.floor!=null)v=Math.max(p.floor,v);
+      v=Math.max(p.min,Math.min(p.max*1.05,v));
+      st.v[p.k]=v;var h=st.h[p.k];h.push([S.min,v]);if(h.length>HIST)h.shift()})})}
+
+function forecast(p,h,v){
+  var n=Math.min(h.length,32);if(n<24||p.wave)return null;
+  var pts=h.slice(-n),mt=0,mv=0;pts.forEach(function(q){mt+=q[0];mv+=q[1]});mt/=n;mv/=n;
+  var num=0,den=0;pts.forEach(function(q){num+=(q[0]-mt)*(q[1]-mv);den+=(q[0]-mt)*(q[0]-mt)});
+  if(!den)return null;var slope=num/den;
+  var span=pts[n-1][0]-pts[0][0];if(Math.abs(slope*1440)<Math.max(3*p.n,(p.max-p.min)*.01)||Math.abs(slope*span)<2.5*p.n)return null;
+  var target=null,kind=null;
+  if(slope>0&&p.hi){if(v<p.hi[0]){target=p.hi[0];kind=2}else if(v<p.hi[1]){target=p.hi[1];kind=3}}
+  if(slope<0&&p.lo){if(v>p.lo[0]){target=p.lo[0];kind=2}else if(v>p.lo[1]){target=p.lo[1];kind=3}}
+  if(target==null)return {slope:slope};
+  return {slope:slope,eta:(target-v)/slope,kind:kind}}
+
+function evaluate(){
+  EQUIP.forEach(function(e){var T=TYPES[e.t],st=S.eq[e.g];
+    T.params.forEach(function(p){
+      var v=st.v[p.k],L=level(p,v),fc=forecast(p,st.h[p.k],v);st.pred[p.k]=fc;
+      if(L<st.prevL[p.k]&&Math.max(p.hi?level({hi:p.hi},v+2*p.n):0,p.lo?level({lo:p.lo},v-2*p.n):0)>=st.prevL[p.k])L=st.prevL[p.k];
+      if(L>st.prevL[p.k])addLog(L,e,p.l+" en "+fmtNum(v,p.d)+" "+p.u+" ("+(L===3?"crítico":"atención")+")");
+      if(L===0&&st.prevL[p.k]>0)addLog(0,e,p.l+" volvió al rango normal");
+      var trend=L===0&&fc&&fc.eta!=null&&fc.eta<24*60;
+      if(trend&&!st.prevT[p.k]&&!(st.tLog[p.k]>S.min-360))st.tLog[p.k]=S.min,addLog(1,e,"Tendencia: "+lc(p.l)+" cruzaría el umbral en "+fmtDur(fc.eta));
+      st.prevT[p.k]=!!trend;st.prevL[p.k]=L;st.lvl[p.k]=L||(trend?1:0)})})}
+
+function eqLevel(g){var st=S.eq[g],m=0;for(var k in st.lvl)m=Math.max(m,st.lvl[k]);return m}
+function bLevel(b){var m=0;b.eq.forEach(function(e){m=Math.max(m,eqLevel(e.g))});return m}
+function worst(e){var st=S.eq[e.g],best=null;TYPES[e.t].params.forEach(function(p){var L=st.lvl[p.k];if(!best||L>best.L)best={p:p,L:L}});return best}
+function taskInfo(e,i){var t=TYPES[e.t].tasks[i],days=(S.min-S.eq[e.g].last[i])/1440,left=t[1]-days;return {name:t[0],every:t[1],left:left,L:left<0?3:left<Math.max(7,t[1]*.1)?2:0}}
+function legalInfo(l){var left=l[2]-S.min/1440;return {name:l[0],norm:l[1],left:left,L:left<0?3:left<30?2:0}}
+// escuela lista para el ingreso: calefacción, bombeo y tanques sin crítico
+function ready(b){var bad=[],warn=[];b.eq.forEach(function(e){if(e.t==="caldera"||e.t==="bomba"||e.t==="tanque"){var L=eqLevel(e.g);if(L===3)bad.push(e.name);else if(L===2)warn.push(e.name)}});
+  return bad.length?{L:3,txt:"No apta para el ingreso sin intervención",det:bad.join(", ")}:warn.length?{L:2,txt:"Apta, con equipos en atención",det:warn.join(", ")}:{L:0,txt:"Lista para el ingreso",det:"Calefacción, bombeo y tanques en rango"}}
+
+function addLog(L,e,msg,test){S.log.unshift({id:++S.seq,t:S.min,L:L,g:e.g,b:e.b,name:e.name,msg:msg,ack:L===0,test:!!test});if(S.log.length>300)S.log.pop()}
+
+/* ---------- Render ---------- */
+var $=function(id){return document.getElementById(id)};
+function chip(L,txt){return '<span class="chip s'+L+'">'+(txt||LVL_TXT[L])+'</span>'}
+function dot(L){return '<span class="dot s'+L+'"></span>'}
+function vis(){return BUILDINGS.filter(inF)}
+function visEq(){return EQUIP.filter(function(e){return inF(e.b)})}
+
+function renderSummary(){
+  var bs=vis(),eqs=visEq(),c=[0,0,0,0];eqs.forEach(function(e){c[eqLevel(e.g)]++});
+  var open=S.log.filter(function(a){return !a.ack&&a.L===3&&inF(a.b)}),openAll=S.log.filter(function(a){return !a.ack&&a.L>0&&inF(a.b)}).length;
+  var venc=0,vt=0;bs.forEach(function(b){b.legal.forEach(function(l){if(legalInfo(l).L===3)venc++});b.eq.forEach(function(e){TYPES[e.t].tasks.forEach(function(_,i){if(taskInfo(e,i).L===3)vt++})})});
+  var sch=bs.filter(function(b){return b.kind==="escuela"}),rd=sch.filter(function(b){return ready(b).L<3}).length;
+  var h='<div class="stat"><span>Edificios</span><b class="num">'+bs.length+'</b><small>'+eqs.length+' equipos monitoreados</small></div>'+
+    '<div class="stat ok"><span>Equipos en estado normal</span><b class="num">'+Math.round(c[0]/eqs.length*100)+' %</b><small>'+c[0]+' de '+eqs.length+'</small></div>'+
+    '<div class="stat trend"><span>Con tendencia</span><b class="num">'+c[1]+'</b><small>cruzan el umbral en menos de 24 h</small></div>'+
+    '<div class="stat crit"><span>Alertas críticas abiertas</span><b class="num">'+open.length+'</b><small>'+openAll+' alertas sin reconocer en total</small></div>'+
+    '<div class="stat warn"><span>Vencimientos</span><b class="num">'+(venc+vt)+'</b><small>'+venc+' legales · '+vt+' tareas preventivas</small></div>';
+  h+=sch.length?'<div class="stat '+(rd===sch.length?"ok":"crit")+'"><span>Escuelas aptas para el ingreso</span><b class="num">'+rd+' de '+sch.length+'</b><small>calefacción, agua y bombeo</small></div>'
+    :'<div class="stat warn"><span>Equipos en atención o críticos</span><b class="num">'+(c[2]+c[3])+'</b><small>'+c[3]+' críticos</small></div>';
+  $("summary").innerHTML=h}
+
+function renderList(){
+  var bs=vis(),h='<h3>Cartera · '+bs.length+' edificios</h3><div class="blist">';
+  bs.forEach(function(b){var L=bLevel(b),n=S.log.filter(function(a){return a.b===b&&!a.ack&&a.L>1}).length,
+      tr=b.eq.filter(function(e){return eqLevel(e.g)===1}).length;
+    var sub=b.area+" · "+b.eq.length+" equipos · "+(n?n+(n>1?" alertas":" alerta"):tr?tr+(tr>1?" tendencias":" tendencia"):"sin alertas");
+    h+='<button type="button" class="bitem'+(S.bsel===b.id?" sel":"")+'" data-b="'+b.id+'">'+dot(L)+'<span class="nm">'+esc(b.name)+'</span>'+chip(L)+
+      '<span class="sub"><span class="kind">'+KIND[b.kind]+'</span>'+esc(sub)+'</span></button>'});
+  h+='</div><div class="legend"><span>'+dot(0)+'Normal</span><span>'+dot(1)+'Tendencia</span><span>'+dot(2)+'Atención</span><span>'+dot(3)+'Crítico</span></div>';
+  $("list").innerHTML=h}
+
+function renderBuilding(){
+  var b=BUILDINGS.find(function(x){return x.id===S.bsel}),L=bLevel(b);
+  var h='<div class="bhead"><h2>'+esc(b.name)+' '+chip(L)+'</h2><div class="meta">'+KIND[b.kind]+' · '+esc(b.area)+' · '+esc(b.meta)+'</div><div class="meta">Avisos a: '+esc(b.resp)+'. Si una alerta crítica no se reconoce en 2 h, escala a: '+esc(b.esc)+'.</div></div>';
+  if(b.kind==="escuela"){var r=ready(b);h+='<div class="ready s'+r.L+'">'+dot(r.L)+'<span><b>'+r.txt+'</b> · '+esc(r.det)+'</span></div>'}
+  Object.keys(TYPES).forEach(function(t){var es=b.eq.filter(function(e){return e.t===t});if(!es.length)return;
+    h+='<div class="tgroup"><h3>'+TYPES[t].name+'</h3><div class="cards">';
+    es.forEach(function(e){var Le=eqLevel(e.g),st=S.eq[e.g],w=worst(e),p=Le>0?w.p:TYPES[t].params.find(function(x){return x.k===KEY[t]});
+      h+='<button type="button" class="card s'+Le+(S.sel===e.g?" sel":"")+'" data-g="'+e.g+'"><span class="nm">'+dot(Le)+'<span>'+esc(e.name)+'</span></span><span class="pl">'+esc(p.l)+'</span>'+
+        '<span class="row"><span class="v num">'+fmtNum(st.v[p.k],p.d)+'<small>'+p.u+'</small></span><canvas class="mini" data-g="'+e.g+'" data-p="'+p.k+'"></canvas></span></button>'});
+    h+='</div></div>'});
+  // tareas: preventivas de los equipos + legales, las más urgentes
+  var items=[];b.eq.forEach(function(e){TYPES[e.t].tasks.forEach(function(_,i){var ti=taskInfo(e,i);items.push({name:ti.name+", "+e.name.toLowerCase(),note:"cada "+ti.every+" d",left:ti.left,L:ti.L})})});
+  b.legal.forEach(function(l){var li=legalInfo(l);items.push({name:li.name,note:li.norm,left:li.left,L:li.L})});
+  items.sort(function(a,c){return a.left-c.left});
+  h+='<div class="tgroup"><h3>Próximas tareas del edificio</h3><div class="tasks">'+items.slice(0,5).map(function(it){
+    return '<div class="task"><span>'+esc(it.name)+' <span class="note">· '+esc(it.note)+'</span></span><span class="when">'+(it.left<0?"vencida hace "+Math.ceil(-it.left)+" d":"en "+Math.floor(it.left)+" d")+'</span>'+chip(it.L,it.L===3?"Vencida":it.L===2?"Próxima":"Al día")+'</div>'}).join("")+'</div></div>';
+  $("bld").innerHTML=h}
+
+function gauge(p,v){
+  var span=p.max-p.min,pct=function(x){return Math.max(0,Math.min(100,(x-p.min)/span*100))},z="";
+  if(p.hi)z+='<span class="zone w" style="left:'+pct(p.hi[0])+'%;right:0"></span><span class="zone c" style="left:'+pct(p.hi[1])+'%;right:0"></span>';
+  if(p.lo)z+='<span class="zone w" style="left:0;width:'+pct(p.lo[0])+'%"></span><span class="zone c" style="left:0;width:'+pct(p.lo[1])+'%"></span>';
+  var lim=[];if(p.lo)lim.push("mín "+fmtNum(p.lo[0],p.d));if(p.hi)lim.push("máx "+fmtNum(p.hi[0],p.d));
+  return '<div class="gauge"><div class="gwrap"><div class="track">'+z+'</div><span class="mark" style="left:'+pct(v)+'%"></span></div><div class="lims"><span>'+fmtNum(p.min,0)+'</span><span>'+lim.join(" · ")+'</span><span>'+fmtNum(p.max,0)+'</span></div></div>'}
+
+function renderDetail(){
+  var e=BY[S.sel],T=TYPES[e.t],st=S.eq[e.g],L=eqLevel(e.g);
+  var hrs=e.run?' · '+fmtNum(st.runBase+S.min/60*(e.t==="ascensor"?.35:e.t==="bomba"?.5:.6),0)+' h de marcha':'';
+  var h='<div class="dhead"><div><h2>'+esc(e.name)+' '+chip(L)+'</h2><div class="meta">'+esc(e.b.name)+' · '+esc(e.loc)+hrs+'</div></div>'+
+    '<div class="acts"><button type="button" data-act="fault">Simular falla</button><button type="button" class="primary" data-act="maint">Registrar mantenimiento</button></div></div>';
+  if(st.faultWhy&&L>0)h+='<div class="cause"><b>Causa probable:</b> '+esc(st.faultWhy)+'.</div>';
+  h+='<div class="params">';
+  T.params.forEach(function(p){var v=st.v[p.k],Lp=st.lvl[p.k],fc=st.pred[p.k],fct="Estable";
+    if(fc&&fc.eta!=null)fct=(fc.kind===3?"Crítico":"Atención")+" en "+fmtDur(fc.eta)+" al ritmo actual";
+    else if(fc)fct=(fc.slope>0?"Subiendo":"Bajando")+" "+fmtNum(Math.abs(fc.slope*1440),p.d)+" "+p.u+" por día";
+    if(p.wave)fct="Ciclo normal de consumo y llenado";
+    var adv=T.advice[p.k];if(adv&&typeof adv==="object")adv=(p.lo&&(v<=p.lo[0]||(Lp===1&&fc&&fc.slope<0)))?adv.lo:adv.hi;
+    h+='<div class="prow l'+Lp+'"><div class="lbl">'+esc(p.l)+'<small>'+esc(p.s)+'</small></div><div class="val num">'+fmtNum(v,p.d)+'<small>'+p.u+'</small></div>'+
+      '<div class="viz">'+gauge(p,v)+'<div><canvas class="spark" data-g="'+e.g+'" data-p="'+p.k+'"></canvas><div class="fc'+(Lp===1?" t":"")+'">'+fct+'</div></div></div>'+
+      (Lp>0&&adv?'<div class="advice"><b>'+(Lp===1?"Anticiparse":"Acción recomendada")+':</b> '+esc(adv)+'</div>':'')+'</div>'});
+  h+='</div><div class="tgroup"><h3>Plan preventivo del equipo</h3><div class="tasks">';
+  T.tasks.forEach(function(_,i){var ti=taskInfo(e,i);
+    h+='<div class="task"><span>'+esc(ti.name)+' <span class="note">· cada '+ti.every+' d</span></span><span class="when">'+(ti.left<0?"vencida hace "+Math.ceil(-ti.left)+" d":"en "+Math.floor(ti.left)+" d")+'</span>'+chip(ti.L,ti.L===3?"Vencida":ti.L===2?"Próxima":"Al día")+'</div>'});
+  h+='</div></div>';
+  $("det").innerHTML=h}
+
+function who(a){if(a.L===0)return '<span class="who">—</span>';
+  if(a.test)return '<span class="who">Prueba de demo</span>';
+  if(a.ack)return '<span class="who">Reconocida</span>';
+  if(a.L===3&&S.min-a.t>=120)return '<span class="who esc">Escalada a '+esc(a.b.esc.toLowerCase())+'</span>';
+  return '<span class="who">Aviso a '+esc(a.b.resp.toLowerCase())+'</span>'}
+
+function renderLog(){
+  var items=S.log.filter(function(a){return inF(a.b)}).slice(0,60);
+  $("logTitle").textContent="Bitácora de alertas · "+(S.filter==="all"?"todos los edificios":S.filter==="escuela"?"escuelas":"consorcios");
+  if(!items.length){$("log").innerHTML='<div class="empty">Sin alertas por ahora.</div>';return}
+  $("log").innerHTML=items.map(function(a){var c=a.L===0?chip(0,"Normalizado"):a.test?'<span class="chip info">Prueba</span>':chip(a.L);
+    return '<div class="li'+(a.ack&&a.L>0?" ack":"")+'"><span class="t">'+fmtTime(a.t)+'</span><span>'+c+'</span><span class="msg"><b>'+esc(a.b.name)+'</b> · '+esc(a.name)+' · '+esc(a.msg)+'</span>'+who(a)+
+      (a.ack||a.L===0?'<span></span>':'<button type="button" data-ack="'+a.id+'">Reconocer</button>')+'</div>'}).join("")}
+
+function renderLegal(){
+  var rows=[];vis().forEach(function(b){b.legal.forEach(function(l){var li=legalInfo(l);rows.push({b:b,li:li})})});
+  rows.sort(function(a,c){return a.li.left-c.li.left});
+  $("legal").innerHTML=rows.slice(0,9).map(function(r){var li=r.li;
+    return '<div class="lg"><span>'+esc(li.name)+' <span class="note">· '+esc(li.norm)+'</span></span>'+chip(li.L,li.L===3?"Vencido":li.L===2?"Próximo":"Al día")+
+      '<span class="who">'+esc(r.b.name)+' · '+(li.left<0?"venció hace "+Math.ceil(-li.left)+" d":"vence en "+Math.floor(li.left)+" d")+'</span></div>'}).join("")}
+
+function drawSparks(){
+  var cs=getComputedStyle(document.documentElement),col={0:cs.getPropertyValue("--accent").trim(),1:cs.getPropertyValue("--trend").trim(),2:cs.getPropertyValue("--warn").trim(),3:cs.getPropertyValue("--crit").trim()},
+    line=cs.getPropertyValue("--line").trim(),warn=cs.getPropertyValue("--warn").trim();
+  document.querySelectorAll("canvas[data-g]").forEach(function(c){
+    var e=BY[c.dataset.g],st=S.eq[e.g],p=TYPES[e.t].params.find(function(x){return x.k===c.dataset.p}),h=st.h[p.k];if(h.length<2)return;
+    var mini=c.classList.contains("mini");if(mini)h=h.slice(-48);
+    var dpr=window.devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;if(!W||!H)return;c.width=W*dpr;c.height=H*dpr;
+    var g=c.getContext("2d");g.scale(dpr,dpr);
+    var vals=h.map(function(q){return q[1]}),lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals),ths=[];
+    if(!mini){if(p.hi)ths.push(p.hi[0]);if(p.lo)ths.push(p.lo[0]);
+      ths.forEach(function(t){if(Math.abs(t-(lo+hi)/2)<(hi-lo)*1.5+p.n*6){lo=Math.min(lo,t);hi=Math.max(hi,t)}})}
+    var pad=(hi-lo)*.12||p.n||1;lo-=pad;hi+=pad;
+    var X=function(i){return 2+i/(vals.length-1)*(W-6)},Y=function(v){return H-3-(v-lo)/(hi-lo)*(H-6)};
+    if(!mini){g.strokeStyle=line;g.lineWidth=1;g.beginPath();g.moveTo(0,H-.5);g.lineTo(W,H-.5);g.stroke()}
+    ths.forEach(function(t){if(t>lo&&t<hi){g.strokeStyle=warn;g.lineWidth=1;g.setLineDash([3,3]);g.beginPath();g.moveTo(0,Y(t));g.lineTo(W,Y(t));g.stroke();g.setLineDash([])}});
+    var cl=col[st.lvl[p.k]]||col[0];
+    g.beginPath();vals.forEach(function(v,i){i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))});
+    g.lineTo(X(vals.length-1),H);g.lineTo(X(0),H);g.closePath();g.globalAlpha=.14;g.fillStyle=cl;g.fill();g.globalAlpha=1;
+    g.beginPath();vals.forEach(function(v,i){i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))});g.strokeStyle=cl;g.lineWidth=1.5;g.stroke();
+    g.beginPath();g.arc(X(vals.length-1),Y(vals[vals.length-1]),2.8,0,7);g.fillStyle=cl;g.fill()})}
+
+function render(){$("clockTxt").textContent=fmtTime(S.min,true);renderSummary();renderList();renderBuilding();renderDetail();renderLog();renderLegal();drawSparks()}
+
+/* ---------- Eventos ---------- */
+var narrow=function(){return window.matchMedia("(max-width:780px)").matches};
+function pickWorst(b){var best=b.eq[0],bl=-1;b.eq.forEach(function(e){var L=eqLevel(e.g);if(L>bl){bl=L;best=e}});return best.g}
+function selectB(id,scroll){S.bsel=id;S.sel=pickWorst(BUILDINGS.find(function(x){return x.id===id}));
+  try{localStorage.setItem("centinela-cartera",JSON.stringify({b:S.bsel,f:S.filter}))}catch(_){}
+  render();if(scroll&&narrow())$("bld").scrollIntoView({behavior:"smooth",block:"start"})}
+$("list").addEventListener("click",function(ev){var b=ev.target.closest("[data-b]");if(b)selectB(b.dataset.b,true)});
+$("bld").addEventListener("click",function(ev){var c=ev.target.closest("[data-g]");if(!c)return;S.sel=c.dataset.g;render();
+  if(window.matchMedia("(max-width:1240px)").matches)$("det").scrollIntoView({behavior:"smooth",block:"start"})});
+$("det").addEventListener("click",function(ev){var btn=ev.target.closest("[data-act]");if(!btn)return;
+  var e=BY[S.sel],T=TYPES[e.t],st=S.eq[e.g];
+  if(btn.dataset.act==="fault"){applyFault(e,T.faults[Math.floor(Math.random()*T.faults.length)])}
+  else{T.params.forEach(function(p){st.drift[p.k]=0;st.off[p.k]=p.reset!=null?p.reset:0;st.h[p.k]=[]});
+    st.faultWhy=null;st.last=st.last.map(function(){return S.min});addLog(0,e,"Mantenimiento registrado: parámetros y tareas restablecidos");
+    for(var i=0;i<10;i++)step(0.01)}
+  evaluate();render()});
+$("log").addEventListener("click",function(ev){var b=ev.target.closest("[data-ack]");if(!b)return;var a=S.log.find(function(x){return x.id==b.dataset.ack});if(a)a.ack=true;render()});
+$("ackAll").addEventListener("click",function(){S.log.forEach(function(a){if(inF(a.b))a.ack=true});render()});
+document.querySelector(".seg").addEventListener("click",function(ev){var b=ev.target.closest("[data-f]");if(!b)return;setFilter(b.dataset.f)});
+function setFilter(f){S.filter=f;document.querySelectorAll(".seg [data-f]").forEach(function(x){x.setAttribute("aria-pressed",String(x.dataset.f===f))});
+  var cur=BUILDINGS.find(function(x){return x.id===S.bsel});if(!inF(cur))selectB(vis()[0].id,false);else{try{localStorage.setItem("centinela-cartera",JSON.stringify({b:S.bsel,f:S.filter}))}catch(_){}render()}}
+$("rate").addEventListener("change",function(){S.rate=+this.value});
+$("pause").addEventListener("click",function(){S.paused=!S.paused;this.textContent=S.paused?"Reanudar":"Pausar";$("clock").classList.toggle("live",!S.paused);$("clock").classList.toggle("paused",S.paused)});
+var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(drawSparks,120)});
+
+/* ---------- Arranque ---------- */
+for(var i=0;i<HIST;i++){step(15);evaluate()}
+S.log.forEach(function(a){a.ack=a.L===0});
+try{var sv=JSON.parse(localStorage.getItem("centinela-cartera")||"null");if(sv){if(sv.f&&sv.f!=="all")S.filter=sv.f;if(sv.b&&BUILDINGS.some(function(x){return x.id===sv.b&&inF(x)})){S.bsel=sv.b;S.sel=pickWorst(BUILDINGS.find(function(x){return x.id===sv.b}))}}}catch(_){}
+document.querySelectorAll(".seg [data-f]").forEach(function(x){x.setAttribute("aria-pressed",String(x.dataset.f===S.filter))});
+render();
+setInterval(function(){if(S.paused)return;step(S.rate);evaluate();render()},2000);
+})();
+</script>

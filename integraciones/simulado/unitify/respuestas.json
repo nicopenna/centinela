@@ -1,0 +1,161 @@
+{
+ "edificios": [
+  {
+   "id": "prop-7f3a",
+   "name": "Edificio Thames",
+   "address": "Thames 1830",
+   "unitsCount": 10
+  }
+ ],
+ "contactos": [
+  {
+   "id": "c0",
+   "name": "Rocío Méndez",
+   "phone": "+549115000000",
+   "email": null,
+   "unitName": "1A",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  },
+  {
+   "id": "c1",
+   "name": "Hernán Castro",
+   "phone": "+549115007311",
+   "email": null,
+   "unitName": "1B",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  },
+  {
+   "id": "c2",
+   "name": "Valeria Ortiz",
+   "phone": "+549115014622",
+   "email": null,
+   "unitName": "2A",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  },
+  {
+   "id": "c3",
+   "name": "Martín Ríos",
+   "phone": "+549115021933",
+   "email": null,
+   "unitName": "2B",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  },
+  {
+   "id": "c4",
+   "name": "Sofía Benítez",
+   "phone": "+549115029244",
+   "email": null,
+   "unitName": "3A",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  },
+  {
+   "id": "c5",
+   "name": "Nicolás Herrera",
+   "phone": "+549115036555",
+   "email": null,
+   "unitName": "3B",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  },
+  {
+   "id": "c6",
+   "name": "Paula Molina",
+   "phone": "+549115043866",
+   "email": null,
+   "unitName": "4A",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  },
+  {
+   "id": "c7",
+   "name": "Gustavo Navarro",
+   "phone": "+549115051177",
+   "email": null,
+   "unitName": "4B",
+   "unitType": "flat",
+   "isMainContact": true,
+   "property": {
+    "id": "prop-7f3a"
+   }
+  }
+ ],
+ "reclamos": [
+  {
+   "id": "t-101",
+   "number": 101,
+   "details": "Pérdida de agua en el techo del baño, viene del 3A",
+   "status": {
+    "type": "new_or_reopened",
+    "name": "Nuevo"
+   },
+   "property": {
+    "id": "prop-7f3a"
+   },
+   "unitName": "2A",
+   "clientName": "Valeria Ortiz",
+   "clientPhone": "+5491150014622",
+   "createdAt": "2026-11-10T13:20:00Z",
+   "updatedAt": "2026-11-10T13:20:00Z"
+  },
+  {
+   "id": "t-102",
+   "number": 102,
+   "details": "El ascensor hace un ruido fuerte al frenar en PB",
+   "status": {
+    "type": "processing",
+    "name": "En proceso"
+   },
+   "property": {
+    "id": "prop-7f3a"
+   },
+   "unitName": "4B",
+   "clientName": "Paula Molina",
+   "clientPhone": "+5491150051177",
+   "createdAt": "2026-11-08T09:05:00Z",
+   "updatedAt": "2026-11-09T16:40:00Z"
+  },
+  {
+   "id": "t-099",
+   "number": 99,
+   "details": "No hay agua caliente desde ayer a la noche",
+   "status": {
+    "type": "completed",
+    "name": "Resuelto"
+   },
+   "property": {
+    "id": "prop-7f3a"
+   },
+   "unitName": "1B",
+   "clientName": "Hernán Castro",
+   "clientPhone": "",
+   "createdAt": "2026-11-02T22:10:00Z",
+   "updatedAt": "2026-11-03T11:00:00Z"
+  }
+ ]
+}

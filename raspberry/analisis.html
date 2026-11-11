@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Centinela Análisis</title>
+<style>
+:root{--bg:#f3f5f8;--card:#fff;--tx:#18212d;--mut:#64707f;--bd:#e2e6ec;--grid:#eef1f5;--acc:#0b6bcb;
+--ok:#12a150;--av:#d9a400;--al:#e8740c;--cr:#d92d20;--agua:#2f8fdd;--agua2:#b9dcf7;--vib:#8e44ad;--amp:#0b6bcb;--soft:#f7f9fb}
+@media (prefers-color-scheme:dark){:root{--bg:#0e131a;--card:#161d27;--tx:#e7ecf3;--mut:#93a0b2;--bd:#273242;--grid:#1f2835;--acc:#5aa9ff;--agua:#4aa8f0;--agua2:#1d3d5c;--vib:#b77fd6;--amp:#5aa9ff;--soft:#1b2330}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.brand{font-weight:800;font-size:19px}.brand span{color:var(--acc)}
+.sub{color:var(--mut);font-size:13px}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--bd);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--bd);background:var(--card);color:var(--tx);padding:7px 12px;font:inherit;font-size:13px;cursor:pointer}
+.seg button:last-child{border-right:0}.seg button.on{background:var(--acc);color:#fff}
+a.btn,button.btn{font:inherit;font-size:13px;padding:7px 12px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);text-decoration:none;cursor:pointer}
+input{font:inherit;font-size:13px;padding:6px 9px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:210px}
+main{max-width:1240px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.banner{background:#fff4d6;color:#6b4e00;border:1px solid #f0d58a;border-radius:10px;padding:9px 14px;font-size:14px}
+@media (prefers-color-scheme:dark){.banner{background:#3a2f12;color:#f3d98b;border-color:#5e4b17}}
+.err{background:#fde8e7;color:#8a1c14;border:1px solid #f3b5b0;border-radius:10px;padding:10px 14px}
+.diag{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1000px){.diag{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.diag{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;min-width:0}
+.d{border-top:5px solid var(--mut)}.d.ok{border-top-color:var(--ok)}.d.av{border-top-color:var(--av)}.d.al{border-top-color:var(--al)}.d.cr{border-top-color:var(--cr)}
+.d .t{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700;display:flex;justify-content:space-between;gap:6px}
+.d .v{font-size:30px;font-weight:800;margin:6px 0 2px;line-height:1.1}.d .v small{font-size:14px;color:var(--mut);font-weight:600}
+.d .h{font-size:14px}.d .a{font-size:13px;color:var(--mut);margin-top:6px}
+.sem{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;color:#fff;background:var(--mut);white-space:nowrap}
+.sem.ok{background:var(--ok)}.sem.av{background:var(--av)}.sem.al{background:var(--al)}.sem.cr{background:var(--cr)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:900px){.row2{grid-template-columns:1fr}}
+h2{font-size:15px;margin:0}.cap{color:var(--mut);font-size:13px;margin:2px 0 10px}
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut);margin-top:6px}.leg i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:5px;vertical-align:middle}
+svg{display:block;width:100%;overflow:visible}
+svg text{fill:var(--mut);font-size:11px}
+.hm td{width:auto;height:18px;border-radius:3px}
+table.ev{width:100%;border-collapse:collapse;font-size:13px}table.ev td{padding:6px 6px;border-bottom:1px solid var(--bd);vertical-align:top}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;color:#fff}
+.chip.critica{background:var(--cr)}.chip.alerta{background:var(--al)}.chip.aviso{background:var(--av)}.chip.ok{background:var(--ok)}
+.empty{color:var(--mut);font-size:14px;padding:20px 0;text-align:center}
+.foot{color:var(--mut);font-size:12px;text-align:center;padding:4px 0 20px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">🦉 Centi<span>nela</span> <span class="sub">· análisis de largo plazo</span></div>
+    <div class="sub" id="sitio">Conectando…</div>
+  </div>
+  <div class="ctrl">
+    <div class="seg" id="rango">
+      <button data-d="1">24 h</button><button data-d="7">7 días</button><button data-d="30" class="on">30 días</button><button data-d="90">90 días</button>
+    </div>
+    <input id="srv" title="Dirección de Centinela" placeholder="http://centinela.local:8080">
+    <a class="btn" id="vivo" href="/">⟵ Tablero en vivo</a>
+  </div>
+</header>
+<main>
+  <div id="aviso"></div>
+  <section class="diag" id="diag"></section>
+
+  <section class="card">
+    <h2>💧 Nivel del tanque</h2>
+    <div class="cap" id="capNivel">Franja: mínimo y máximo de cada hora · línea: promedio.</div>
+    <svg id="cNivel"></svg>
+    <div class="leg"><span><i style="background:var(--agua2)"></i>rango por hora</span><span><i style="background:var(--agua)"></i>promedio</span><span><i style="background:var(--al)"></i>nivel bajo</span><span><i style="background:var(--cr)"></i>crítico</span></div>
+  </section>
+
+  <section class="card">
+    <h2>📳 Vibración de la bomba: tendencia y pronóstico</h2>
+    <div class="cap" id="capVib">Promedio diario con la bomba en marcha. La línea punteada proyecta la tendencia hasta el umbral de alarma.</div>
+    <svg id="cVib"></svg>
+    <div class="leg"><span><i style="background:var(--vib)"></i>vibración promedio del día</span><span><i style="background:var(--vib);opacity:.35"></i>máximo del día</span><span><i style="background:var(--tx);opacity:.5"></i>tendencia / pronóstico</span><span><i style="background:var(--cr)"></i>alarma</span></div>
+  </section>
+
+  <div class="row2">
+    <section class="card">
+      <h2>🚿 Consumo de agua</h2>
+      <div class="cap" id="capCons">Litros usados por día. Más claro: fines de semana.</div>
+      <svg id="cCons"></svg>
+    </section>
+    <section class="card">
+      <h2>🕒 ¿Cuándo se usa el agua?</h2>
+      <div class="cap">Litros por hora, promedio de cada día de la semana. Más oscuro, más consumo.</div>
+      <div id="hm"></div>
+    </section>
+  </div>
+
+  <div class="row2">
+    <section class="card">
+      <h2>🔄 Uso de la bomba</h2>
+      <div class="cap" id="capBomba">Minutos de marcha por día (barras) y cantidad de arranques (puntos).</div>
+      <svg id="cBomba"></svg>
+      <div class="leg"><span><i style="background:var(--acc)"></i>minutos de marcha</span><span><i style="background:var(--al)"></i>arranques</span></div>
+    </section>
+    <section class="card">
+      <h2>⚡ Corriente del motor</h2>
+      <div class="cap">Promedio diario con la bomba en marcha. La franja verde es la zona normal de trabajo.</div>
+      <svg id="cAmp"></svg>
+      <div class="leg"><span><i style="background:var(--ok);opacity:.4"></i>zona normal</span><span><i style="background:var(--amp)"></i>corriente promedio</span></div>
+    </section>
+  </div>
+
+  <div class="row2">
+    <section class="card">
+      <h2>🔔 Alertas por día</h2>
+      <div class="cap">Cuántas alertas se abrieron cada día, por gravedad.</div>
+      <svg id="cAl"></svg>
+      <div class="leg"><span><i style="background:var(--cr)"></i>crítica</span><span><i style="background:var(--al)"></i>alerta</span><span><i style="background:var(--av)"></i>aviso</span></div>
+    </section>
+    <section class="card">
+      <h2>📋 Últimos eventos</h2>
+      <div style="max-height:300px;overflow:auto"><table class="ev" id="evs"></table></div>
+    </section>
+  </div>
+  <div class="foot" id="foot"></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const esLocal=location.protocol.startsWith('http');
+let SRV=esLocal?'':(store.get('centinela_srv')||'http://centinela.local:8080');
+let DIAS=+(store.get('centinela_dias')||30), DATA=null;
+$('srv').value=esLocal?location.origin:SRV;
+$('vivo').href=(esLocal?'':SRV)+'/vivo';
+$('srv').onchange=e=>{SRV=e.target.value.replace(/\/$/,'');store.set('centinela_srv',SRV);$('vivo').href=SRV+'/vivo';cargar()};
+document.querySelectorAll('#rango button').forEach(b=>{b.classList.toggle('on',+b.dataset.d===DIAS);b.onclick=()=>{DIAS=+b.dataset.d;store.set('centinela_dias',DIAS);document.querySelectorAll('#rango button').forEach(x=>x.classList.toggle('on',x===b));cargar()}});
+
+const DIAS_SEM=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const f1=(v,d=0)=>v==null||isNaN(v)?'—':v.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fecha=t=>{const d=new Date(t);return d.getDate()+'/'+(d.getMonth()+1)};
+const fechaHora=t=>{const d=new Date(t);return fecha(t)+' '+String(d.getHours()).padStart(2,'0')+':00'};
+
+/* ---------- agregación ---------- */
+function porDia(horas){
+  const m=new Map();
+  for(const h of horas){
+    const t=new Date(h.hora);const k=t.toDateString();
+    let d=m.get(k);if(!d){d={t:new Date(t.getFullYear(),t.getMonth(),t.getDate()).getTime(),marcha:0,arr:0,cons:0,llen:0,vibW:0,ampW:0,vibMax:null,ampMax:null,muestras:0,sin:0,nmin:null,nmax:null};m.set(k,d)}
+    const mm=h.marcha_min||0;d.marcha+=mm;d.arr+=h.arranques||0;d.cons+=h.consumo_pct||0;d.llen+=h.llenado_pct||0;
+    d.muestras+=h.muestras||0;d.sin+=h.sin_dato||0;
+    if(h.vib_prom!=null&&mm>0){d.vibW+=h.vib_prom*mm;d.ampW+=(h.corriente_prom||0)*mm}
+    if(h.vib_max!=null)d.vibMax=Math.max(d.vibMax??0,h.vib_max);
+    if(h.nivel_min!=null){d.nmin=Math.min(d.nmin??999,h.nivel_min);d.nmax=Math.max(d.nmax??-1,h.nivel_max)}
+  }
+  return [...m.values()].sort((a,b)=>a.t-b.t).map(d=>({...d,vib:d.marcha>0?d.vibW/d.marcha:null,amp:d.marcha>0?d.ampW/d.marcha:null}));
+}
+function regresion(pts){ // [{x,y}]
+  const n=pts.length;if(n<3)return null;
+  let sx=0,sy=0,sxx=0,sxy=0;for(const p of pts){sx+=p.x;sy+=p.y;sxx+=p.x*p.x;sxy+=p.x*p.y}
+  const den=n*sxx-sx*sx;if(!den)return null;const b=(n*sxy-sx*sy)/den,a=(sy-b*sx)/n;return {a,b,f:x=>a+b*x};
+}
+
+/* ---------- gráficos SVG ---------- */
+function lienzo(svg,h){const w=Math.max(280,svg.parentElement.clientWidth-32);svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.setAttribute('height',h);return w}
+function escala(d0,d1,r0,r1){return v=>r0+(v-d0)/((d1-d0)||1)*(r1-r0)}
+function ejes(o){ // o:{w,h,m,x,y,t0,t1,ymin,ymax,yfmt,ticksY}
+  let s='';const {w,h,m}=o;
+  const nY=4;for(let i=0;i<=nY;i++){const v=o.ymin+(o.ymax-o.ymin)*i/nY,y=o.y(v);
+    s+=`<line x1="${m.l}" x2="${w-m.r}" y1="${y}" y2="${y}" stroke="${css('--grid')}"/>`+
+       `<text x="${m.l-6}" y="${y+4}" text-anchor="end">${o.yfmt(v)}</text>`}
+  const span=o.t1-o.t0,dia=864e5;let paso=span<=2*dia?6*36e5:span<=10*dia?dia:span<=40*dia?7*dia:14*dia;
+  let t=new Date(o.t0);if(paso>=dia){t.setHours(0,0,0,0);if(paso===7*dia){while(t.getDay()!==1)t.setDate(t.getDate()+1)}}else{t.setMinutes(0,0,0);t.setHours(Math.ceil(t.getHours()/6)*6)}
+  for(let tt=t.getTime();tt<=o.t1;tt+=paso){if(tt<o.t0)continue;const x=o.x(tt);
+    s+=`<line x1="${x}" x2="${x}" y1="${m.t}" y2="${h-m.b}" stroke="${css('--grid')}"/>`+
+       `<text x="${x}" y="${h-m.b+15}" text-anchor="middle">${paso<dia?fechaHora(tt):fecha(tt)}</text>`}
+  return s;
+}
+function umbral(o,v,color,txt){if(v<o.ymin||v>o.ymax)return '';const y=o.y(v);
+  return `<line x1="${o.m.l}" x2="${o.w-o.m.r}" y1="${y}" y2="${y}" stroke="${color}" stroke-dasharray="5 4" stroke-width="1.4"/><text x="${o.w-o.m.r}" y="${y-4}" text-anchor="end" style="fill:${color};font-weight:700">${txt}</text>`}
+function vacio(svg,msg){lienzo(svg,90);svg.innerHTML=`<text x="50%" y="50" text-anchor="middle">${msg}</text>`}
+
+function gNivel(horas,cfg){
+  const svg=$('cNivel');const pts=horas.filter(h=>h.nivel_prom!=null).map(h=>({t:new Date(h.hora).getTime(),...h}));
+  if(pts.length<2)return vacio(svg,'Todavía no hay suficientes horas registradas.');
+  const H=230,w=lienzo(svg,H),m={l:38,r:10,t:10,b:24};
+  const t0=pts[0].t,t1=pts[pts.length-1].t+36e5;
+  const o={w,h:H,m,t0,t1,ymin:0,ymax:100,yfmt:v=>v+'%',x:escala(t0,t1,m.l,w-m.r),y:escala(0,100,H-m.b,m.t)};
+  let band='',line='';
+  pts.forEach((p,i)=>{band+=(i?'L':'M')+o.x(p.t+18e5).toFixed(1)+' '+o.y(p.nivel_max).toFixed(1)});
+  for(let i=pts.length-1;i>=0;i--)band+='L'+o.x(pts[i].t+18e5).toFixed(1)+' '+o.y(pts[i].nivel_min).toFixed(1);
+  // corta la línea donde faltan horas (sensor sin dato)
+  let prev=null;pts.forEach(p=>{const salto=!prev||p.t-prev>2*36e5;line+=(salto?'M':'L')+o.x(p.t+18e5).toFixed(1)+' '+o.y(p.nivel_prom).toFixed(1);prev=p.t});
+  const huecos=horas.filter(h=>h.sin_dato>0&&h.muestras&&h.sin_dato/h.muestras>.2).map(h=>{const t=new Date(h.hora).getTime();return `<rect x="${o.x(t)}" y="${m.t}" width="${Math.max(2,o.x(t+36e5)-o.x(t))}" height="${H-m.b-m.t}" fill="${css('--cr')}" opacity=".15"><title>${fechaHora(t)}: sensor sin lectura</title></rect>`}).join('');
+  svg.innerHTML=ejes(o)+huecos+`<path d="${band}Z" fill="${css('--agua2')}" opacity=".9"/>`+
+    `<path d="${line}" fill="none" stroke="${css('--agua')}" stroke-width="1.8" stroke-linejoin="round"/>`+
+    umbral(o,cfg.bajo,css('--al'),'bajo '+cfg.bajo+'%')+umbral(o,cfg.critico,css('--cr'),'crítico '+cfg.critico+'%');
+}
+
+function gVib(dias,cfg,reg){
+  const svg=$('cVib');const pts=dias.filter(d=>d.vib!=null);
+  if(pts.length<2)return vacio(svg,'Faltan días con la bomba en marcha para ver la tendencia.');
+  const H=240,w=lienzo(svg,H),m={l:46,r:16,t:14,b:24},dia=864e5;
+  const t0=pts[0].t;let t1=pts[pts.length-1].t+dia;
+  let proy=null;
+  if(reg&&reg.b>0){const xNow=(pts[pts.length-1].t-t0)/dia,yNow=reg.f(xNow);
+    if(yNow<cfg.vib){const dd=(cfg.vib-yNow)/reg.b;if(dd<=120){proy={t:pts[pts.length-1].t+dd*dia,dias:dd};t1=Math.max(t1,proy.t+2*dia)}}}
+  const ymax=Math.max(cfg.vib*1.15,...pts.map(p=>p.vibMax||0))*1.05;
+  const o={w,h:H,m,t0,t1,ymin:0,ymax,yfmt:v=>v.toFixed(2)+' g',x:escala(t0,t1,m.l,w-m.r),y:escala(0,ymax,H-m.b,m.t)};
+  let s=ejes(o)+umbral(o,cfg.vib,css('--cr'),'alarma '+cfg.vib+' g');
+  if(proy)s+=`<rect x="${o.x(pts[pts.length-1].t+dia/2)}" y="${m.t}" width="${o.x(t1)-o.x(pts[pts.length-1].t+dia/2)}" height="${H-m.b-m.t}" fill="${css('--soft')}"/><text x="${o.x(pts[pts.length-1].t+dia/2)+6}" y="${m.t+12}">pronóstico</text>`;
+  pts.forEach(p=>{if(p.vibMax!=null)s+=`<line x1="${o.x(p.t+dia/2)}" x2="${o.x(p.t+dia/2)}" y1="${o.y(p.vib)}" y2="${o.y(p.vibMax)}" stroke="${css('--vib')}" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>`});
+  s+=`<path d="${pts.map((p,i)=>(i?'L':'M')+o.x(p.t+dia/2).toFixed(1)+' '+o.y(p.vib).toFixed(1)).join('')}" fill="none" stroke="${css('--vib')}" stroke-width="2"/>`;
+  pts.forEach(p=>{s+=`<circle cx="${o.x(p.t+dia/2)}" cy="${o.y(p.vib)}" r="3.2" fill="${css('--vib')}"><title>${fecha(p.t)}: promedio ${p.vib.toFixed(3)} g · máximo ${(p.vibMax||0).toFixed(3)} g</title></circle>`});
+  if(reg){const ta=pts[Math.max(0,pts.length-10)].t,xa=(ta-t0)/dia,xb=(pts[pts.length-1].t-t0)/dia;
+    s+=`<line x1="${o.x(ta+dia/2)}" y1="${o.y(reg.f(xa))}" x2="${o.x(pts[pts.length-1].t+dia/2)}" y2="${o.y(reg.f(xb))}" stroke="${css('--tx')}" stroke-opacity=".5" stroke-width="1.5"/>`;
+    if(proy){s+=`<line x1="${o.x(pts[pts.length-1].t+dia/2)}" y1="${o.y(reg.f(xb))}" x2="${o.x(proy.t)}" y2="${o.y(cfg.vib)}" stroke="${css('--tx')}" stroke-opacity=".6" stroke-width="1.8" stroke-dasharray="6 5"/>`+
+      `<circle cx="${o.x(proy.t)}" cy="${o.y(cfg.vib)}" r="6" fill="none" stroke="${css('--cr')}" stroke-width="2.5"/>`+
+      `<text x="${o.x(proy.t)}" y="${o.y(cfg.vib)+22}" text-anchor="middle" style="fill:${css('--cr')};font-weight:700;font-size:12px">≈ ${fecha(proy.t)}</text>`}}
+  svg.innerHTML=s;
+}
+
+function barras(svg,dias,val,{color,fmt,extra,altura=200,colorFn,tip}){
+  if(!dias.length)return vacio(svg,'Sin datos.');
+  const H=altura,w=lienzo(svg,H),m={l:44,r:12,t:12,b:24},dia=864e5;
+  const t0=dias[0].t,t1=dias[dias.length-1].t+dia;const ymax=Math.max(1,...dias.map(val))*1.15;
+  const o={w,h:H,m,t0,t1,ymin:0,ymax,yfmt:fmt,x:escala(t0,t1,m.l,w-m.r),y:escala(0,ymax,H-m.b,m.t)};
+  const bw=Math.max(2,(o.x(t0+dia)-o.x(t0))*.7);
+  let s=ejes(o);
+  dias.forEach(d=>{const v=val(d),x=o.x(d.t+dia/2)-bw/2,y=o.y(v);s+=`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(0,H-m.b-y)}" rx="2" fill="${colorFn?colorFn(d):color}"><title>${tip(d)}</title></rect>`});
+  if(extra)s+=extra(o,dias);
+  svg.innerHTML=s;
+}
+
+function heatmap(horas,cap){
+  const acc=Array.from({length:7},()=>Array.from({length:24},()=>({s:0,n:0})));
+  horas.forEach(h=>{if(h.consumo_pct==null)return;const t=new Date(h.hora);const c=acc[t.getDay()][t.getHours()];c.s+=h.consumo_pct/100*cap;c.n++});
+  const vals=acc.flat().filter(c=>c.n).map(c=>c.s/c.n);if(!vals.length){$('hm').innerHTML='<div class="empty">Sin datos.</div>';return}
+  const mx=Math.max(...vals,1);const orden=[1,2,3,4,5,6,0];
+  let s='<table class="hm" style="width:100%;table-layout:fixed;border-spacing:2px;font-size:11px;color:var(--mut)"><tr><td style="width:34px"></td>';
+  for(let h=0;h<24;h++)s+=`<td style="text-align:center">${h%3===0?h:''}</td>`;s+='</tr>';
+  orden.forEach(d=>{s+=`<tr><td style="padding-right:6px">${DIAS_SEM[d]}</td>`;
+    for(let h=0;h<24;h++){const c=acc[d][h];const v=c.n?c.s/c.n:null;const a=v==null?0:Math.min(1,v/mx);
+      s+=`<td title="${DIAS_SEM[d]} ${h}:00 → ${v==null?'sin datos':f1(v)+' L/h'}" style="background:${v==null?'transparent':`color-mix(in srgb, ${css('--agua')} ${Math.round(8+a*92)}%, ${css('--card')})`}"></td>`}
+    s+='</tr>'});
+  s+=`</table><div class="leg" style="justify-content:space-between"><span>0 L/h</span><span>máx. ${f1(mx)} L/h</span></div>`;
+  $('hm').innerHTML=s;
+}
+
+/* ---------- diagnóstico en lenguaje simple ---------- */
+function tarjeta(t,sem,semTxt,v,h,a){return `<div class="card d ${sem}"><div class="t"><span>${t}</span><span class="sem ${sem}">${semTxt}</span></div><div class="v">${v}</div><div class="h">${h}</div><div class="a">${a}</div></div>`}
+function diagnostico(D,dias,reg){
+  const c=D.config,cap=c.capacidad_l,u=D.ultimo||{};const out=[];
+  // 1 Tanque: autonomía con el consumo de horario escolar
+  const hab=D.horas.filter(h=>{const t=new Date(h.hora);return t.getDay()>0&&t.getDay()<6&&t.getHours()>=8&&t.getHours()<17&&h.consumo_pct!=null});
+  const lph=hab.length?hab.reduce((s,h)=>s+h.consumo_pct,0)/hab.length/100*cap:null;
+  const lit=u.nivel_pct!=null?u.nivel_pct/100*cap:null;const aut=lph&&lit!=null?lit/lph:null;
+  const sT=u.nivel_pct==null?['','Sin dato']:u.nivel_pct<c.critico?['cr','Crítico']:u.nivel_pct<c.bajo?['al','Bajo']:['ok','Normal'];
+  out.push(tarjeta('Tanque',sT[0],sT[1],`${f1(u.nivel_pct)}<small> % · ${f1(lit)} L</small>`,
+    aut!=null?`Alcanza para <b>${f1(aut,1)} h de clase</b> si la bomba no repone.`:'Calculando autonomía…',
+    lph?`Consumo típico en horario escolar: ${f1(lph)} L/h.`:''));
+  // 2 Rodamiento / vibración
+  const vd=dias.filter(d=>d.vib!=null);
+  if(vd.length>=3&&reg){
+    const n=Math.min(5,Math.floor(vd.length/3)),ini=vd.slice(0,n).reduce((s,d)=>s+d.vib,0)/n,fin=vd.slice(-n).reduce((s,d)=>s+d.vib,0)/n;
+    const cambio=(fin/ini-1)*100,xNow=(vd[vd.length-1].t-vd[0].t)/864e5,yNow=reg.f(xNow),dd=reg.b>0?(c.vib-yNow)/reg.b:null;
+    let sem=['ok','Sano'],h=`Vibración estable (${cambio>=0?'+':''}${f1(cambio)} % en el período).`,a='Sin acción necesaria.';
+    if(fin>=c.vib){sem=['cr','Falla'];h='Vibración por encima de la alarma.';a='Parar la bomba y revisar rodamientos y anclaje.'}
+    else if(dd!=null&&dd<=14){sem=['cr','Urgente'];h=`Subió <b>${f1(cambio)} %</b>. A este ritmo llega a alarma en <b>~${f1(dd)} días</b>.`;a='Programar cambio de rodamientos esta semana.'}
+    else if(dd!=null&&dd<=60&&cambio>25){sem=['al','Desgaste'];h=`Subió <b>${f1(cambio)} %</b>. Llega a alarma en <b>~${f1(dd)} días</b>.`;a='Planificar la revisión del motor-bomba.'}
+    else if(cambio>25){sem=['av','Vigilar'];h=`La vibración subió ${f1(cambio)} % en el período.`;a='Seguir la tendencia.'}
+    out.push(tarjeta('Bomba · rodamientos',sem[0],sem[1],`${f1(fin,3)}<small> g</small>`,h,a));
+  }else out.push(tarjeta('Bomba · rodamientos','','Aprendiendo','—','Hacen falta al menos 3 días con la bomba en marcha para ver la tendencia.',''));
+  // 3 Rendimiento (caudal efectivo)
+  const rd=dias.filter(d=>d.marcha>5);
+  if(rd.length>=4){
+    const n=Math.max(2,Math.floor(rd.length/3)),q=ds=>ds.reduce((s,d)=>s+d.llen,0)/ds.reduce((s,d)=>s+d.marcha,0)/100*cap;
+    const q0=q(rd.slice(0,n)),q1=q(rd.slice(-n)),dif=(q1/q0-1)*100;const hd=rd.slice(-n).reduce((s,d)=>s+d.marcha,0)/n/60;
+    const sem=dif<-20?['al','Pierde caudal']:dif<-8?['av','Vigilar']:['ok','Normal'];
+    out.push(tarjeta('Bomba · rendimiento',sem[0],sem[1],`${f1(q1)}<small> L/min</small>`,
+      dif<-8?`Llena <b>${f1(-dif)} % más lento</b> que al inicio del período.`:'Llena el tanque al mismo ritmo de siempre.',
+      `Trabaja ${f1(hd,1)} h por día en promedio.`));
+  }else out.push(tarjeta('Bomba · rendimiento','','Aprendiendo','—','Faltan días con la bomba en marcha.',''));
+  // 4 Consumo y consumo nocturno (fugas)
+  if(dias.length>=2){
+    const lab=dias.filter(d=>{const g=new Date(d.t).getDay();return g>0&&g<6});const prom=lab.length?lab.reduce((s,d)=>s+d.cons,0)/lab.length/100*cap:0;
+    const noche=D.horas.filter(h=>{const t=new Date(h.hora).getHours();return t>=0&&t<6&&h.consumo_pct!=null});
+    const nprom=noche.length?noche.reduce((s,h)=>s+h.consumo_pct,0)/noche.length/100*cap:0;
+    const picos=noche.filter(h=>h.consumo_pct/100*cap>Math.max(3*nprom,20));
+    const ult=picos.length?picos[picos.length-1]:null;
+    const sem=ult&&(Date.now()-new Date(ult.hora))<2*864e5?['al','Revisar']:picos.length?['av','Hubo fuga']:['ok','Normal'];
+    out.push(tarjeta('Consumo de agua',sem[0],sem[1],`${f1(prom)}<small> L/día hábil</small>`,
+      picos.length?`Consumo nocturno anormal el <b>${fecha(new Date(ult.hora))}</b> (${f1(ult.consumo_pct/100*cap)} L/h de madrugada).`:'Sin consumos nocturnos anormales: no hay señales de fugas.',
+      `De noche lo normal es ${f1(nprom)} L/h.`));
+  }else out.push(tarjeta('Consumo de agua','','Aprendiendo','—','Falta al menos un día completo.',''));
+  $('diag').innerHTML=out.join('');
+}
+
+function render(){
+  const D=DATA;if(!D)return;const c=D.config,cap=c.capacidad_l;
+  const dias=porDia(D.horas);
+  // tendencia = últimos 10 días con la bomba en marcha (el desgaste se acelera, importa lo reciente)
+  const vd=dias.filter(d=>d.vib!=null);const reg=regresion(vd.slice(-10).map(d=>({x:(d.t-vd[0].t)/864e5,y:d.vib})));
+  $('sitio').textContent=`${D.sitio} · ${D.equipo}`;
+  $('aviso').innerHTML=D.simulado?'<div class="banner">🧪 <b>Demostración:</b> este período incluye historial <b>simulado</b> para mostrar cómo se ven las tendencias. Las mediciones reales del sensor se suman a partir de la instalación.</div>':'';
+  diagnostico(D,dias,reg);
+  gNivel(D.horas,c);
+  gVib(dias,c,reg);
+  barras($('cCons'),dias,d=>d.cons/100*cap,{fmt:v=>f1(v)+' L',colorFn:d=>{const g=new Date(d.t).getDay();return g===0||g===6?css('--agua2'):css('--agua')},tip:d=>`${DIAS_SEM[new Date(d.t).getDay()]} ${fecha(d.t)}: ${f1(d.cons/100*cap)} L`});
+  heatmap(D.horas,cap);
+  barras($('cBomba'),dias,d=>d.marcha,{color:css('--acc'),fmt:v=>f1(v)+' min',tip:d=>`${fecha(d.t)}: ${f1(d.marcha)} min de marcha, ${d.arr} arranques`,
+    extra:(o,ds)=>{const mx=Math.max(1,...ds.map(d=>d.arr))*1.3,y=escala(0,mx,o.h-o.m.b,o.m.t);
+      return ds.map(d=>`<circle cx="${o.x(d.t+432e5)}" cy="${y(d.arr)}" r="4" fill="${css('--al')}" stroke="${css('--card')}" stroke-width="1.5"><title>${d.arr} arranques</title></circle>`).join('')}});
+  // corriente
+  (()=>{const svg=$('cAmp'),pts=dias.filter(d=>d.amp!=null);if(pts.length<2)return vacio(svg,'Sin días con la bomba en marcha.');
+    const H=200,w=lienzo(svg,H),m={l:44,r:12,t:12,b:24},dia=864e5,t0=pts[0].t,t1=pts[pts.length-1].t+dia,ymax=c.sobre*1.15;
+    const o={w,h:H,m,t0,t1,ymin:0,ymax,yfmt:v=>f1(v,1)+' A',x:escala(t0,t1,m.l,w-m.r),y:escala(0,ymax,H-m.b,m.t)};
+    let s=ejes(o)+`<rect x="${m.l}" y="${o.y(c.nominal*1.1)}" width="${w-m.l-m.r}" height="${o.y(c.nominal*0.9)-o.y(c.nominal*1.1)}" fill="${css('--ok')}" opacity=".15"/>`+
+      umbral(o,c.sobre,css('--cr'),'sobrecorriente')+umbral(o,c.seco,css('--al'),'marcha en seco');
+    s+=`<path d="${pts.map((p,i)=>(i?'L':'M')+o.x(p.t+dia/2).toFixed(1)+' '+o.y(p.amp).toFixed(1)).join('')}" fill="none" stroke="${css('--amp')}" stroke-width="2"/>`;
+    pts.forEach(p=>s+=`<circle cx="${o.x(p.t+dia/2)}" cy="${o.y(p.amp)}" r="3" fill="${css('--amp')}"><title>${fecha(p.t)}: ${p.amp.toFixed(2)} A</title></circle>`);svg.innerHTML=s})();
+  // alertas por día
+  (()=>{const svg=$('cAl');const ab=D.eventos.filter(e=>e.nivel!=='ok');
+    if(!dias.length)return vacio(svg,'Sin datos.');
+    const m=new Map(dias.map(d=>[d.t,{t:d.t,critica:0,alerta:0,aviso:0}]));
+    ab.forEach(e=>{const t=new Date(e.fecha);const k=new Date(t.getFullYear(),t.getMonth(),t.getDate()).getTime();if(m.has(k))m.get(k)[e.nivel]=(m.get(k)[e.nivel]||0)+1});
+    const ds=[...m.values()];const H=170,w=lienzo(svg,H),mg={l:30,r:12,t:12,b:24},dia=864e5,t0=ds[0].t,t1=ds[ds.length-1].t+dia;
+    const ymax=Math.max(2,...ds.map(d=>d.critica+d.alerta+d.aviso))*1.2;
+    const o={w,h:H,m:mg,t0,t1,ymin:0,ymax,yfmt:v=>Math.round(v),x:escala(t0,t1,mg.l,w-mg.r),y:escala(0,ymax,H-mg.b,mg.t)};
+    const bw=Math.max(2,(o.x(t0+dia)-o.x(t0))*.7);let s=ejes(o);
+    ds.forEach(d=>{let acc=0;[['critica','--cr'],['alerta','--al'],['aviso','--av']].forEach(([k,col])=>{if(!d[k])return;const y0=o.y(acc),y1=o.y(acc+d[k]);acc+=d[k];
+      s+=`<rect x="${o.x(d.t+dia/2)-bw/2}" y="${y1}" width="${bw}" height="${y0-y1}" fill="${css(col)}"><title>${fecha(d.t)}: ${d[k]} ${k}</title></rect>`})});
+    svg.innerHTML=s})();
+  // eventos
+  const ev=[...D.eventos].reverse().slice(0,60);
+  $('evs').innerHTML=ev.length?ev.map(e=>`<tr><td style="white-space:nowrap;color:var(--mut)">${fecha(new Date(e.fecha))} ${e.fecha.slice(11,16)}</td><td><span class="chip ${e.nivel}">${e.nivel==='ok'?'resuelta':e.nivel}</span></td><td>${e.texto}</td></tr>`).join(''):'<tr><td class="empty">Sin eventos en el período.</td></tr>';
+  const tot=dias.reduce((s,d)=>s+d.muestras,0),sin=dias.reduce((s,d)=>s+d.sin,0);
+  $('foot').textContent=`${D.horas.length} horas analizadas · disponibilidad del sensor de nivel ${tot?f1(100-sin/tot*100,1):'—'} % · actualizado ${new Date().toLocaleTimeString('es-AR')}`;
+}
+
+async function cargar(){
+  try{
+    const r=await fetch((esLocal?'':SRV)+'/api/historico?dias='+DIAS,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    DATA=await r.json();render();
+  }catch(e){
+    $('aviso').innerHTML=`<div class="err">No me pude conectar con Centinela en <b>${esLocal?location.origin:SRV}</b>. Revisá que la Raspberry esté prendida y en la misma red, y que la dirección de arriba sea la correcta (por ejemplo http://192.168.0.50:8080).</div>`;
+    $('sitio').textContent='Sin conexión';
+  }
+}
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(render,150)});
+cargar();setInterval(cargar,60000);
+</script>
+</body>
+</html>

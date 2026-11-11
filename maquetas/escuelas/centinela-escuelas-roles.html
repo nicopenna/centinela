@@ -1,0 +1,512 @@
+<title>Centinela Escuelas por rol</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: estilo portal de trámites. Encabezado blanco con navegación en pastillas (activa en amarillo), banda de contexto con el usuario, línea amarilla, contenido centrado en columna de ~1040 px con tablas de cabecera gris azulada y pestañas grises */
+:root{
+  --bg:#ffffff; --band:#f6f7f9; --head:#e8edf2; --line:#d9dee4; --fg:#2b2f33; --muted:#5f6b76;
+  --yellow:#ffd200; --yellow-ink:#2b2f33; --link:#0f6fb3; --link-soft:#e3f0fa;
+  --ok:#1f7a45; --ok-soft:#ddf1e4; --warn:#a85d00; --warn-soft:#fdeccc; --crit:#c62828; --crit-soft:#fbe0e0; --off:#6b7680; --off-soft:#eceff2;
+  --f-body:"Nunito","Segoe UI",system-ui,sans-serif; --f-mono:"Roboto Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15191d; --band:#1b2025; --head:#232a31; --line:#323b44; --fg:#e7ebef; --muted:#9aa6b1;
+  --yellow:#ffd200; --yellow-ink:#1b1d1f; --link:#6db7ee; --link-soft:#1d3346;
+  --ok:#5cc489; --ok-soft:#173a26; --warn:#f2a845; --warn-soft:#3d2c10; --crit:#f26b6b; --crit-soft:#46201f; --off:#9aa4ad; --off-soft:#272e35; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15191d; --band:#1b2025; --head:#232a31; --line:#323b44; --fg:#e7ebef; --muted:#9aa6b1;
+  --yellow:#ffd200; --yellow-ink:#1b1d1f; --link:#6db7ee; --link-soft:#1d3346;
+  --ok:#5cc489; --ok-soft:#173a26; --warn:#f2a845; --warn-soft:#3d2c10; --crit:#f26b6b; --crit-soft:#46201f; --off:#9aa4ad; --off-soft:#272e35; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{max-width:1080px;margin:0 auto}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+
+/* encabezado */
+.hdr{border-bottom:1px solid var(--line);background:var(--bg)}
+.hdr .col{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-block:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:42px;height:42px;border-radius:8px;background:var(--yellow);color:var(--yellow-ink);display:grid;place-items:center;font-weight:800;font-size:22px;letter-spacing:-.02em}
+.brand b{display:block;font-size:18px;font-weight:700;line-height:1.15}
+.brand small{display:block;font-size:13px;color:var(--muted)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav button{background:none;border:0;border-radius:8px;padding:8px 12px;font-size:15px;font-weight:600;color:var(--fg)}
+.nav button:hover{background:var(--band)}
+.nav button[aria-current="page"]{background:var(--yellow);color:var(--yellow-ink)}
+.ctx{border-bottom:2px solid var(--yellow);background:var(--bg)}
+.ctx .col{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-block:10px}
+.sel{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--bg);font-size:14px}
+.sel select{border:0;background:var(--bg);font-weight:700;max-width:62vw}
+.sel span{color:var(--muted)}
+.clock{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.clock .now{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);margin-right:2px}
+.demo{background:var(--warn-soft);color:var(--warn);font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:2px 7px}
+
+/* botones */
+.btn{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 12px;font-weight:600;font-size:14px}
+.btn:hover{border-color:var(--link);color:var(--link)}
+.btn.pri{background:var(--yellow);border-color:var(--yellow);color:var(--yellow-ink)}
+.btn.pri:hover{filter:brightness(.96);color:var(--yellow-ink)}
+.btn.lnk{border-color:transparent;color:var(--link);padding-inline:6px}
+.btn.dan{color:var(--crit);border-color:var(--crit)}
+.btn.sm{font-size:13px;padding:4px 10px}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* contenido */
+main.col{padding-block:22px 48px;display:flex;flex-direction:column;gap:18px}
+h1{font-size:20px;font-weight:700;margin:0;text-wrap:balance}
+h2{font-size:17px;font-weight:700;margin:0}
+.lead{margin:2px 0 0;color:var(--muted);font-size:14px;max-width:75ch}
+.kv{display:flex;flex-direction:column;gap:4px;font-size:15px}
+.kv b{font-weight:700}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sp{justify-content:space-between}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.tile b{display:block;font-size:30px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.tile span{font-size:13px;color:var(--muted)}
+.tile.k2 b{color:var(--crit)} .tile.k1 b{color:var(--warn)} .tile.k0 b{color:var(--ok)}
+
+/* tablas estilo trámite */
+.tbox{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{background:var(--head);text-align:left;font-weight:700;padding:12px 14px;white-space:nowrap}
+td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--band)}
+tr.on td{background:var(--link-soft)}
+.cap{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+/* pestañas */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{border:1px solid var(--line);border-bottom:0;background:var(--head);border-radius:8px 8px 0 0;padding:8px 14px;font-weight:600;color:var(--fg)}
+.tabs button[aria-selected="true"]{background:var(--bg);margin-bottom:-1px;padding-bottom:9px;font-weight:700}
+.tabpane{border:1px solid var(--line);border-top:0;border-radius:0 0 10px 10px;padding:16px;display:flex;flex-direction:column;gap:14px}
+
+/* chips */
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.lvE{background:var(--crit-soft);color:var(--crit)} .lvU{background:var(--warn-soft);color:var(--warn)} .lvP{background:var(--link-soft);color:var(--link)} .lvI{background:var(--off-soft);color:var(--off)}
+.ok{background:var(--ok-soft);color:var(--ok)} .wa{background:var(--warn-soft);color:var(--warn)} .cr{background:var(--crit-soft);color:var(--crit)} .of{background:var(--off-soft);color:var(--off)} .in{background:var(--link-soft);color:var(--link)}
+
+/* alertas */
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{border:1px solid var(--line);border-left:5px solid var(--off);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card.E{border-left-color:var(--crit)} .card.U{border-left-color:var(--warn)} .card.P{border-left-color:var(--link)}
+.card.done{opacity:.6}
+.card .data{font-family:var(--f-mono);font-size:12.5px;background:var(--band);border-radius:6px;padding:6px 9px}
+.card .meta{font-size:13px;color:var(--muted)}
+.late{color:var(--crit);font-weight:700}
+.steps{display:flex;gap:4px;flex-wrap:wrap;font-size:12px}
+.steps i{font-style:normal;background:var(--band);color:var(--muted);border-radius:999px;padding:1px 8px}
+.steps i.on{background:var(--link-soft);color:var(--link);font-weight:700}
+.big{font-size:22px;font-weight:800;line-height:1.25}
+.sem{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:600px){.sem{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.smf{border-radius:10px;padding:14px;background:var(--ok-soft)} .smf b{display:block;font-size:19px;font-weight:800;color:var(--ok)}
+.smf.k1{background:var(--warn-soft)} .smf.k1 b{color:var(--warn)} .smf.k2{background:var(--crit-soft)} .smf.k2 b{color:var(--crit)}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.box{border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.inbox .nt{display:grid;grid-template-columns:48px minmax(0,1fr);gap:0 10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.inbox .nt:first-of-type{border-top:0}
+.inbox .t{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:2px}
+.inbox .why{grid-column:2;font-size:12.5px;color:var(--muted)}
+.inbox .pend{opacity:.55}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+.note{font-size:13px;color:var(--muted)}
+input.f{border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--bg);min-width:0;width:100%;max-width:340px}
+.formula{font-family:var(--f-mono);font-size:13px;background:var(--band);border-radius:8px;padding:10px 12px;overflow-x:auto}
+.bar{height:8px;border-radius:4px;background:var(--off-soft);overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar.w i{background:var(--warn)} .bar.c i{background:var(--crit)}
+.lock{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;box-shadow:0 4px 18px rgba(0,0,0,.18);max-width:calc(100vw - 32px)}
+</style>
+
+<header class="hdr gut">
+  <div class="col">
+    <div class="brand"><div class="mark" aria-hidden="true">C</div><div><b>Centinela Escuelas</b><small>Propuesta para mantenimiento de edificios escolares · <span class="demo">Demo</span></small></div></div>
+    <nav class="nav" id="nav" aria-label="Secciones"></nav>
+  </div>
+</header>
+<div class="ctx gut">
+  <div class="col">
+    <label class="sel" for="rolSel"><span>Ingresó como:</span><select id="rolSel"></select></label>
+    <div class="clock" aria-label="Reloj simulado">
+      <span class="now" id="now"></span>
+      <button class="btn sm" id="t30" type="button">+30 min</button>
+      <button class="btn sm" id="t2h" type="button">+2 h</button>
+      <button class="btn sm" id="t24" type="button">+1 día</button>
+      <button class="btn sm dan" id="sim" type="button">Simular fuga de gas</button>
+      <button class="btn sm" id="reset" type="button">Reiniciar</button>
+    </div>
+  </div>
+</div>
+<main class="col gut" id="view" aria-live="polite"></main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+const H = 3600e3, M = 60e3, D = 24*H;
+const T0 = Date.UTC(2026, 6, 14, 10, 30); // mar 14/07/2026 07:30 hora Buenos Aires
+const LV = {E:'Emergencia', U:'Urgente', P:'Programado', I:'Informativo'};
+const ROLES = [
+  {id:'dg',  name:'Director General', who:'Dirección General', ctx:'Toda la Ciudad'},
+  {id:'ger', name:'Gerente operativo', who:'Gerencia de Mantenimiento', ctx:'Toda la Ciudad'},
+  {id:'sup', name:'Supervisor', who:'Marcos Ibarra', ctx:'Zona II · Comunas 8 y 9'},
+  {id:'insp',name:'Inspectora', who:'Laura Benítez', ctx:'4 escuelas · Comuna 9'},
+  {id:'emp', name:'Empresa contratista', who:'Mantenimientos Delta S.A.', ctx:'Representante Técnico'},
+  {id:'esc', name:'Escuela', who:'Esc. Primaria N° 12', ctx:'Equipo directivo'},
+  {id:'op',  name:'Operador Centinela', who:'Centro de monitoreo', ctx:'Sensores'}
+];
+const TABS = [
+  {id:'ini', name:'Inicio', roles:'*'},
+  {id:'ale', name:'Alertas', roles:'*'},
+  {id:'os',  name:'Órdenes de servicio', roles:'dg ger sup insp emp'},
+  {id:'cer', name:'Certificación', roles:'dg ger sup insp emp'},
+  {id:'pre', name:'Preventivo', roles:'dg ger sup insp emp'},
+  {id:'edi', name:'Edificios', roles:'*'},
+  {id:'aud', name:'Auditoría', roles:'dg ger sup insp op'}
+];
+const EMP = {
+  'Mantenimientos Delta S.A.':{total:4800e6, meses:24, cuota:200e6, hist:{resp:42, multas:1}},
+  'Obras Sur S.R.L.':{total:3600e6, meses:24, cuota:150e6, hist:{resp:150, multas:3}},
+  'Servicios Riachuelo S.A.':{total:3000e6, meses:24, cuota:125e6, hist:{resp:65, multas:0}}
+};
+const ESC = {
+  e07:{n:'Esc. Primaria N° 7', z:'II', c:'Comuna 9', dir:'Av. Ejemplo 1200', insp:'Laura Benítez', emp:'Mantenimientos Delta S.A.', m2:2400, rel:100},
+  e12:{n:'Esc. Primaria N° 12', z:'II', c:'Comuna 9', dir:'Calle Muestra 455', insp:'Laura Benítez', emp:'Mantenimientos Delta S.A.', m2:3100, rel:100},
+  e18:{n:'Esc. Primaria N° 18', z:'II', c:'Comuna 9', dir:'Pasaje Demo 76', insp:'Laura Benítez', emp:'Mantenimientos Delta S.A.', m2:1900, rel:80},
+  e09:{n:'Esc. Media N° 9', z:'II', c:'Comuna 9', dir:'Av. Prueba 3020', insp:'Laura Benítez', emp:'Mantenimientos Delta S.A.', m2:4200, rel:60},
+  e04:{n:'Jardín N° 4', z:'II', c:'Comuna 8', dir:'Calle Ficticia 88', insp:'Pablo Ferreyra', emp:'Obras Sur S.R.L.', m2:900, rel:40},
+  e21:{n:'Esc. Técnica N° 21', z:'II', c:'Comuna 8', dir:'Av. Modelo 5100', insp:'Pablo Ferreyra', emp:'Obras Sur S.R.L.', m2:5600, rel:20},
+  e15:{n:'Esc. Primaria N° 15', z:'I', c:'Comuna 4', dir:'Calle Patrón 230', insp:'Diego Sosa', emp:'Servicios Riachuelo S.A.', m2:2200, rel:100},
+  e03:{n:'Esc. Media N° 3', z:'I', c:'Comuna 4', dir:'Av. Plantilla 980', insp:'Diego Sosa', emp:'Servicios Riachuelo S.A.', m2:3800, rel:70}
+};
+const ME = {insp:'Laura Benítez', emp:'Mantenimientos Delta S.A.', esc:'e12', zona:'II'};
+// Inventario: equipos por escuela
+const EQT = {
+  CA:{n:'Caldera', mod:'Humotubular a gas 250.000 kcal/h', sens:'Presión, temperatura, llama', rut:'Revisión de quemador y seguridades', f:1, pre:'Prueba pre-temporada (marzo)'},
+  BO:{n:'Bomba de elevación', mod:'Centrífuga 3 HP, par alternado', sens:'Vibración, corriente, temperatura, presión', rut:'Revisión de rodamientos, sellos y tablero', f:3},
+  TQ:{n:'Tanque de reserva', mod:'Hormigón 10.000 l', sens:'Nivel, flotante', rut:'Limpieza y desinfección', f:6},
+  TT:{n:'Termotanque', mod:'Alta recuperación 150 l a gas', sens:'Temperatura, llama', rut:'Limpieza de sarro y ánodo', f:6},
+  AS:{n:'Ascensor', mod:'Electromecánico 6 personas', sens:'Vibración, viajes, puerta', rut:'Mantenimiento de conservadora', f:1}
+};
+const INV = {
+  e07:[['CA',2004],['BO',2015],['TQ',1978],['TT',2019]], e12:[['CA',1998],['BO',2012],['TQ',1985],['TT',2017]],
+  e18:[['CA',2010],['BO',2009],['TQ',1990],['TT',2014]], e09:[['CA',2001],['BO',2016],['TQ',1972],['AS',2008]],
+  e04:[['CA',2018],['BO',2018],['TQ',2018]], e21:[['CA',1995],['BO',2005],['TQ',1960],['AS',1999]],
+  e15:[['CA',2012],['BO',2014],['TQ',1981],['TT',2020]], e03:[['CA',2007],['BO',2011],['TQ',1975],['AS',2013]]
+};
+
+const STEPS = ['Nueva','Recibida','En camino','Resuelta','Conformada'];
+const ISO = ms => { const d = new Date(ms - 3*H); const p = n => String(n).padStart(2,'0'); return `${p(d.getUTCDate())}-${p(d.getUTCMonth()+1)}-${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; };
+const DAY = ms => ISO(ms).slice(0,10);
+const HM = ms => ISO(ms).slice(11);
+const dur = ms => ms < H ? Math.max(0,Math.round(ms/M))+' min' : ms < 48*H ? (Math.round(ms/H*10)/10).toString().replace('.',',')+' h' : Math.round(ms/D)+' días';
+const ars = n => '$ ' + Math.round(n).toLocaleString('es-AR');
+const h = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const esc = id => ESC[id];
+
+let now, A, OS, LOG, PLAN, role = 'insp', tab = 'ini', sel = {os:null, edi:'e12', cerEmp:'Mantenimientos Delta S.A.', osTab:'doc', audF:''}, seq = 0;
+try{ const r = localStorage.getItem('cent-esc-rol'); if (r && ROLES.some(x=>x.id===r)) role = r; }catch(e){}
+const docNo = (tipo) => `${tipo}-2026-${46700000 + (++seq)*137}-GCABA-DGMCEE`;
+const exNo = () => `EX-2026-${45961000 + (++seq)*211}- -GCABA-DGMCEE`;
+const userOf = r => { const x = ROLES.find(y=>y.id===r); return `${x.who} (${x.name})`; };
+
+function log(r, accion, objeto, detalle, t = now){ LOG.push({t, user:userOf(r), accion, objeto, detalle}); }
+
+function seed(){
+  now = T0; seq = 0; LOG = []; OS = [];
+  A = [
+    {id:1, lv:'E', esc:'e07', eq:'Caldera', txt:'Sobrepresión en caldera', dato:'Presión 2,9 bar (máx. 2,5) · agua 96 °C', t:T0-10*M, st:0, plain:'No usar la sala de calderas. El técnico ya fue avisado.'},
+    {id:2, lv:'U', esc:'e12', eq:'Caldera', txt:'Calefacción apagada en día de clase', dato:'Caldera sin llama desde 05:10 · aulas 13 °C', t:T0-3*H, st:1, plain:'La calefacción no funciona. La empresa ya fue avisada.'},
+    {id:3, lv:'U', esc:'e04', eq:'Tanque', txt:'Tanque de reserva bajo', dato:'Nivel 18 % · bomba sin arrancar', t:T0-30*H, st:2, goAt:T0-29*H, plain:'Puede faltar agua en los baños.'},
+    {id:4, lv:'U', esc:'e21', eq:'Ascensor', txt:'Ascensor fuera de servicio', dato:'Detenido en PB · 0 viajes en 80 h', t:T0-80*H, st:2, goAt:T0-79*H, plain:'El ascensor no funciona.'},
+    {id:5, lv:'P', esc:'e09', eq:'Bomba', txt:'Vibración de bomba en aumento', dato:'7,1 mm/s RMS (2,8 hace 30 días) · rodamiento probable', t:T0-48*H, st:0},
+    {id:6, lv:'I', esc:'e15', eq:'Tanque', txt:'Limpieza de tanque vence en 5 días', dato:'Última limpieza 19-01-2026', t:T0-20*H, st:0},
+    {id:7, lv:'I', esc:'e18', eq:'Termotanque', txt:'Sensor sin señal', dato:'Último dato hace 6 h · revisar alimentación del nodo', t:T0-6*H, st:0},
+    {id:8, lv:'U', esc:'e18', eq:'Bomba', txt:'Bombas de agua sin arrancar', dato:'Corriente 0 A con orden de marcha · contactor reemplazado', t:T0-26*H, st:3, goAt:T0-25*H, resAt:T0-1*H, plain:'Las bombas de agua ya funcionan. ¿Lo confirman?'},
+    {id:9, lv:'P', esc:'e18', eq:'Termotanque', txt:'Termotanque tarda más en recuperar', dato:'40 °C en 95 min (antes 60 min) · posible sarro', t:T0-72*H, st:0}
+  ];
+  // órdenes de servicio ya emitidas para las alertas viejas
+  [3,4,8].forEach(id => emitOS(A.find(a=>a.id===id), 'insp', true));
+  // historia de auditoría
+  A.forEach(a => log('op', 'Alerta detectada', `Alerta ${a.id}`, `${LV[a.lv]} · ${esc(a.esc).n} · ${a.txt}`, a.t));
+  A.filter(a=>a.goAt).forEach(a => log('emp', 'Marcó en camino', `Alerta ${a.id}`, esc(a.esc).n, a.goAt));
+  A.filter(a=>a.resAt).forEach(a => log('emp', 'Marcó resuelto', `Alerta ${a.id}`, 'Con foto y lectura normal', a.resAt));
+  log('insp', 'Ingresó al sistema', 'Sesión', 'Celular', T0-40*M);
+  // plan de preventivo
+  PLAN = [];
+  const cur = new Date(T0 - 3*H); const m0 = cur.getUTCFullYear()*12 + cur.getUTCMonth();
+  Object.entries(INV).forEach(([e, list]) => list.forEach(([k], i) => {
+    const t = EQT[k]; const lastOff = (i + e.charCodeAt(2)) % (t.f + 1);
+    let last = m0 - lastOff; if (e==='e21' && k==='TQ') last = m0 - 8; if (e==='e04' && k==='BO') last = m0 - 4; if (e==='e09' && k==='AS') last = m0 - 1;
+    const next = last + t.f;
+    const done = next > m0 ? true : (i % 2 === 0);
+    PLAN.push({esc:e, k, rut:t.rut, f:t.f, last, next, hecho: next > m0 ? null : done});
+  }));
+  PLAN.push({esc:'e12', k:'CA', rut:EQT.CA.pre, f:12, last:m0-4, next:m0+8, hecho:null});
+}
+const M2S = m => ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'].at(m % 12) + ' ' + Math.floor(m/12);
+const curM = () => { const c = new Date(now - 3*H); return c.getUTCFullYear()*12 + c.getUTCMonth(); };
+function planState(p){
+  const m = curM();
+  if (p.next < m) return ['Vencida', 'cr'];
+  if (p.next === m) return p.hecho ? ['Hecha este mes','ok'] : ['Programada, no hecha','wa'];
+  if (p.next === m + 1) return ['Vence el mes próximo','in'];
+  return ['Al día','ok'];
+}
+
+const open = a => a.st < 4;
+const moving = a => a.st >= 2;
+const isEsc = a => (a.lv === 'U' && !moving(a) && a.st < 3 && now - a.t >= 2*H) || (a.lv === 'E' && !moving(a) && now - a.t >= 30*M);
+
+function rules(a){
+  const out = [], add = (r, at, why) => out.push({r, at, why});
+  const t = a.t, takenAt = a.goAt ?? Infinity, closedAt = a.st === 4 ? (a.closeAt ?? now) : Infinity, resAt = a.resAt ?? Infinity;
+  add('emp', t, 'Toda alerta le llega a la empresa al instante');
+  add('op', t, a.lv==='I' && /sin señal/.test(a.txt) ? 'Sensor sin señal: lo revisa el operador' : 'Verifica que no sea falla del sensor');
+  if (a.lv==='E' || a.lv==='U') { add('insp', t, LV[a.lv]+': inspección al instante'); add('esc', t, 'Afecta el uso: aviso en lenguaje simple'); }
+  else add('insp', t, 'Va en el resumen diario');
+  if (a.lv==='E') { add('sup', t, 'Emergencia: al instante'); add('ger', t, 'Emergencia: al instante');
+    if (a.evac) add('dg', t, 'Evacuación: al instante'); else if (takenAt > t + 30*M) add('dg', t + 30*M, 'Emergencia sin "en camino" a los 30 min'); }
+  if (a.lv==='U') {
+    if (takenAt > t + 2*H && resAt > t + 2*H) add('sup', t + 2*H, 'Urgente sin "en camino" a las 2 h');
+    if (closedAt > t + 24*H && resAt > t + 24*H) add('ger', t + 24*H, 'Urgente abierta a las 24 h');
+    if (closedAt > t + 72*H && resAt > t + 72*H) add('dg', t + 72*H, 'Urgente abierta a las 72 h'); }
+  if (a.lv==='P') add('sup', t, 'Va en el resumen semanal');
+  if (a.st===3 && a.resAt) add('esc', a.resAt, 'La empresa marcó resuelto: pide conformidad');
+  return out.filter(x => !(x.at > closedAt));
+}
+const scope = (r, a) => r==='insp' ? esc(a.esc).insp===ME.insp : r==='emp' ? esc(a.esc).emp===ME.emp : r==='esc' ? a.esc===ME.esc : r==='sup' ? esc(a.esc).z===ME.zona : true;
+const escScope = (r, e) => r==='insp' ? ESC[e].insp===ME.insp : r==='emp' ? ESC[e].emp===ME.emp : r==='esc' ? e===ME.esc : r==='sup' ? ESC[e].z===ME.zona : true;
+function inbox(r){
+  const l = []; A.forEach(a => rules(a).filter(x=>x.r===r).forEach(x => l.push({a, at:x.at, why:x.why})));
+  return l.filter(x => scope(r, x.a)).sort((x,y) => (x.at>now)-(y.at>now) || y.at-x.at);
+}
+
+// ---------- órdenes de servicio ----------
+function emitOS(a, r, silent){
+  if (a.os) return;
+  const o = {no: 'OS-2026-' + String(4100 + a.id).padStart(5,'0'), ex: null, alert:a.id, esc:a.esc, emp:esc(a.esc).emp, t: silent ? a.t + 20*M : now,
+    plazo: a.lv==='E' ? 4*H : a.lv==='U' ? 24*H : 15*D, docs:[], mov:[]};
+  a.os = o.no; OS.push(o);
+  const t1 = o.t;
+  o.docs.push({doc:docNo('IF'), ref:`Informe de alerta Centinela · ${a.txt}`, t:a.t});
+  o.docs.push({doc:o.no, ref:`Orden de servicio · ${esc(a.esc).n}`, t:t1});
+  o.mov.push({t:t1, de:'Inspección (L. Benítez)', a:'Empresa ' + o.emp.split(' ')[0], motivo:'Emisión de orden de servicio'});
+  if (silent) { o.ex = exNo(); o.docs.push({doc:docNo('PV'), ref:'Pase', t:t1 + 10*M}); o.mov.push({t:t1+10*M, de:'Inspección', a:'Expediente ' + o.ex.slice(0,19), motivo:'Vinculación a expediente'}); log('insp','Emitió orden de servicio', o.no, esc(a.esc).n, t1); }
+  else log(r, 'Emitió orden de servicio', o.no, esc(a.esc).n);
+}
+function osPhase(o){ const a = A.find(x=>x.id===o.alert); return a ? STEPS[a.st] : '—'; }
+function osLate(o){ const a = A.find(x=>x.id===o.alert); const end = a.resAt ?? now; return Math.max(0, end - (o.t + o.plazo)); }
+
+// ---------- acciones ----------
+function act(id, what){
+  const a = A.find(x=>x.id===id); if (!a) return;
+  const o = OS.find(x=>x.alert===id);
+  const mv = (de, para, motivo) => { if (o) { o.mov.push({t:now, de, a:para, motivo}); o.docs.push({doc:docNo('PV'), ref:'Pase', t:now}); } };
+  if (what==='rec') { a.st = Math.max(a.st,1); log(role,'Marcó recibido',`Alerta ${id}`, esc(a.esc).n); toast('Recibido'); }
+  if (what==='go')  { a.st = Math.max(a.st,2); a.goAt = now; log(role,'Marcó en camino',`Alerta ${id}`, esc(a.esc).n); mv('Empresa','Inspección','En camino'); toast('Marcado en camino: se frena el escalamiento'); }
+  if (what==='res') { a.st = 3; a.resAt = now; a.goAt ??= now; log(role,'Marcó resuelto',`Alerta ${id}`,'Con foto y lectura normal'); if (o) { o.docs.push({doc:docNo('IF'), ref:'Informe de cierre de la empresa (fotos y lectura)', t:now}); mv('Empresa','Escuela','Pide conformidad'); } toast('Resuelto: se pidió conformidad a la escuela'); }
+  if (what==='ok')  { a.st = 4; a.closeAt = now; log(role, role==='esc'?'Dio conformidad':'Cerró sin conformidad (24 h)', `Alerta ${id}`, esc(a.esc).n); mv(role==='esc'?'Escuela':'Inspección','Archivo','Conformidad y cierre'); toast('Pedido cerrado'); }
+  if (what==='no')  { a.st = 1; a.resAt = undefined; a.goAt = undefined; a.t = now; log(role,'Rechazó el arreglo',`Alerta ${id}`,'Sigue fallando'); mv('Escuela','Empresa','Reabierta: sigue fallando'); toast('Reabierta y devuelta a la empresa'); }
+  if (what==='os')  { emitOS(a, role); toast('Orden de servicio emitida'); }
+  render();
+}
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.k); toast.k = setTimeout(()=>{t.hidden = true;}, 2400); }
+
+// ---------- piezas ----------
+const btn = (id, what, label, cls='') => `<button type="button" class="btn sm ${cls}" data-id="${id}" data-act="${what}">${label}</button>`;
+const steps = a => `<div class="steps">${STEPS.map((s,i)=>`<i class="${a.st>=i?'on':''}">${s}</i>`).join('')}</div>`;
+function timer(a){ if (a.st>=3) return `<span class="meta">resuelta ${a.resAt?HM(a.resAt):''}</span>`; const late = isEsc(a); return `<span class="meta ${late?'late':''}">abierta hace ${dur(now-a.t)}${late?' · escalada':''}</span>`; }
+function card(a, actions, o={}){
+  const e = esc(a.esc);
+  return `<article class="card ${a.lv} ${a.st===4?'done':''}">
+   <div class="row sp"><span><span class="chip lv${a.lv}">${LV[a.lv]}</span> <b>${h(e.n)}</b> <span class="meta">· ${h(a.eq)} · ${h(e.c)}</span></span>${timer(a)}</div>
+   <div class="row"><b>${h(a.txt)}</b>${a.evac?'<span class="chip cr">Evacuación</span>':''}${a.os?`<span class="chip in">${a.os}</span>`:''}</div>
+   ${o.plain ? `<div class="big">${h(a.plain||a.txt)}</div>` : `<div class="data">${h(a.dato)}</div>`}
+   ${o.noSteps?'':steps(a)}
+   ${actions?`<div class="row">${actions}</div>`:''}
+  </article>`;
+}
+function actionsFor(a){
+  if (a.st===4) return '';
+  if (role==='emp') return a.st===0 ? btn(a.id,'rec','Recibido')+btn(a.id,'go','En camino','pri') : a.st===1 ? btn(a.id,'go','En camino','pri') : a.st===2 ? btn(a.id,'res','Resuelto, con foto y lectura','pri') : '<span class="note">Esperando conformidad de la escuela</span>';
+  if (role==='insp' && esc(a.esc).insp===ME.insp) return (a.os?'':btn(a.id,'os','Emitir orden de servicio','pri')) + (a.st===3?btn(a.id,'ok','Cerrar sin conformidad'):'');
+  if (role==='esc') return a.st===3 ? btn(a.id,'ok','Sí, funciona','pri')+btn(a.id,'no','Sigue fallando') : '';
+  return '';
+}
+
+// ---------- vistas ----------
+const V = {};
+V.ini = () => {
+  const r = ROLES.find(x=>x.id===role), mine = A.filter(a=>scope(role,a));
+  const late = mine.filter(a=>open(a)&&isEsc(a)).length, em = mine.filter(a=>open(a)&&a.lv==='E').length, urg = mine.filter(a=>open(a)&&a.lv==='U'&&a.st<3).length;
+  const escs = Object.keys(ESC).filter(e=>escScope(role,e));
+  const notOk = new Set(mine.filter(a=>open(a)&&a.st<3&&(a.lv==='E'||a.lv==='U')).map(a=>a.esc));
+  const venc = PLAN.filter(p=>escScope(role,p.esc) && planState(p)[1] !== 'ok' && planState(p)[1] !== 'in').length;
+  const ib = inbox(role); const got = ib.filter(x=>x.at<=now).length;
+  let lead = '';
+  if (role==='esc') {
+    const k = q => { const x = mine.filter(a=>a.st<4 && (a.lv==='E'||a.lv==='U'||a.st===3) && (q==='Agua'?(a.eq==='Tanque'||a.eq==='Bomba'):q==='Calefacción'?a.eq==='Caldera':a.eq===q)); return x.some(a=>a.lv==='E')?2:x.some(a=>a.st<3)?1:0; };
+    const w = ['Funciona','Con problema','No usar'];
+    lead = `<div class="big">${['Calefacción','Agua','Ascensor','Gas'].every(q=>k(q)===0)?'Hoy el edificio funciona normal.':'Hoy hay algo que no funciona. Abajo está qué y quién lo arregla.'}</div>
+    <div class="sem">${['Calefacción','Agua','Ascensor','Gas'].map(q=>{const v=k(q);return `<div class="smf k${v}"><b>${w[v]}</b>${q}</div>`;}).join('')}</div>
+    <div class="cards">${mine.filter(a=>a.st<4&&(a.lv==='E'||a.lv==='U'||a.st===3)).map(a=>card(a, actionsFor(a) || `<span class="note">${a.st>=2?'El técnico está en camino.':'La empresa ya fue avisada.'}</span>`, {plain:true,noSteps:true})).join('')}</div>`;
+  } else {
+    lead = `<div class="tiles">
+      <div class="tile ${notOk.size?'k1':'k0'}"><b>${escs.length-notOk.size} de ${escs.length}</b><span>escuelas funcionando normal</span></div>
+      <div class="tile ${em?'k2':'k0'}"><b>${em}</b><span>emergencias abiertas</span></div>
+      <div class="tile ${late?'k2':''}"><b>${late}</b><span>escaladas por demora, de ${urg+em} abiertas</span></div>
+      <div class="tile ${venc?'k1':''}"><b>${venc}</b><span>preventivos vencidos o sin hacer</span></div></div>`;
+  }
+  return `<div><h1>Hola, ${h(r.who)}</h1><p class="lead">${h(r.name)} · ${h(r.ctx)}. Este inicio muestra solo lo que le toca a tu rol; a la derecha, cada aviso que recibiste y por qué.</p></div>
+  <div class="grid2"><div class="box"><h2>${role==='esc'?'Estado del edificio':'Resumen'}</h2>${lead}
+  ${role!=='esc'?`<div class="row"><button class="btn" data-go="ale" type="button">Ver alertas</button>${TABS.find(t=>t.id==='os').roles.includes(role)?'<button class="btn" data-go="os" type="button">Órdenes de servicio</button>':''}${TABS.find(t=>t.id==='cer').roles.includes(role)?'<button class="btn" data-go="cer" type="button">Certificación del mes</button>':''}</div>`:''}</div>
+  <div class="box inbox"><h2>Notificaciones <span class="chip in">${got}</span></h2>
+  ${ib.map(({a,at,why})=>`<div class="nt ${at>now?'pend':''}"><span class="t">${DAY(at)===DAY(now)?HM(at):DAY(at).slice(0,5)}</span><span><span class="chip lv${a.lv}">${a.lv}</span> ${h(esc(a.esc).n)}: ${h(a.txt)}</span><span class="why">${at>now?'Pendiente, si nadie actúa: ':''}${h(why)}</span></div>`).join('') || '<p class="empty">Sin notificaciones.</p>'}
+  </div></div>`;
+};
+V.ale = () => {
+  const ord = {E:0,U:1,P:2,I:3};
+  const l = A.filter(a=>scope(role,a)).filter(a => role==='esc' ? (a.lv==='E'||a.lv==='U'||a.st===3) : role==='dg' ? true : true).sort((x,y)=>(x.st===4)-(y.st===4)||ord[x.lv]-ord[y.lv]||x.t-y.t);
+  return `<div><h1>Alertas</h1><p class="lead">${role==='emp'?'Todo lo que detectan los sensores en tus escuelas, con el dato. "En camino" frena el escalamiento; esos tiempos los mide el contrato.':role==='insp'?'Emergencias y urgentes de tus escuelas. Emitís la orden de servicio y cerrás cuando la escuela confirma (o a las 24 h si no responde).':role==='esc'?'Lo que se está arreglando en tu escuela.':'Alertas dentro de tu alcance. Las escaladas están marcadas en rojo.'}</p></div>
+  <div class="cards">${l.map(a=>card(a, actionsFor(a), role==='esc'?{plain:true,noSteps:true}:{})).join('') || '<p class="empty">Sin alertas.</p>'}</div>`;
+};
+V.os = () => {
+  const l = OS.filter(o=>escScope(role,o.esc)).sort((x,y)=>y.t-x.t);
+  if (!sel.os || !l.some(o=>o.no===sel.os)) sel.os = l[0]?.no ?? null;
+  const o = l.find(x=>x.no===sel.os);
+  const pend = A.filter(a=>scope(role,a)&&open(a)&&(a.lv==='E'||a.lv==='U')&&!a.os);
+  let det = '';
+  if (o) {
+    const a = A.find(x=>x.id===o.alert), late = osLate(o);
+    det = `<div class="box"><h2>${h(o.no)} · ${h(esc(o.esc).n)}</h2>
+    <div class="kv"><span><b>Estado:</b> ${osPhase(o)}</span><span><b>Fecha de inicio:</b> ${ISO(o.t)}</span><span><b>Plazo:</b> ${dur(o.plazo)} (${LV[a.lv].toLowerCase()})${late?` · <span class="late">${dur(late)} de atraso</span>`:''}</span><span><b>Empresa:</b> ${h(o.emp)}</span>
+    <span><b>Expediente:</b> ${o.ex?h(o.ex):'<span class="note">sin vincular</span>'}</span></div>
+    ${!o.ex && (role==='insp'||role==='sup') ? `<div class="row"><input class="f" id="exIn" placeholder="EX-2026-00000000- -GCABA-DGMCEE" aria-label="Número de expediente"><button class="btn sm pri" type="button" data-ex="${o.no}">Vincular expediente</button></div>`:''}
+    <div><div class="tabs" role="tablist"><button type="button" role="tab" data-ostab="doc" aria-selected="${sel.osTab==='doc'}">Documentos</button><button type="button" role="tab" data-ostab="mov" aria-selected="${sel.osTab==='mov'}">Detalle de movimientos</button></div>
+    <div class="tabpane">${sel.osTab==='doc' ? `<div class="tw"><table><thead><tr><th>Documento</th><th>Referencia</th><th>Fecha de creación</th></tr></thead><tbody>${o.docs.slice().reverse().map(d=>`<tr><td class="mono">${h(d.doc)}</td><td>${h(d.ref)}</td><td class="mono">${ISO(d.t)}</td></tr>`).join('')}</tbody></table></div>`
+      : `<div class="tw"><table><thead><tr><th>Fecha</th><th>De</th><th>A</th><th>Motivo</th></tr></thead><tbody>${o.mov.slice().reverse().map(m=>`<tr><td class="mono">${ISO(m.t)}</td><td>${h(m.de)}</td><td>${h(m.a)}</td><td>${h(m.motivo)}</td></tr>`).join('')}</tbody></table></div>`}
+    <p class="cap">Números de documento de ejemplo. En la versión real, el número lo asigna el sistema oficial de expedientes y Centinela guarda la referencia.</p></div></div></div>`;
+  }
+  return `<div><h1>Órdenes de servicio</h1><p class="lead">Cada alerta urgente genera su orden de servicio con el dato del sensor como informe, y se vincula al expediente de la obra o del contrato. Todos los pases quedan con fecha y hora.</p></div>
+  ${pend.length && role==='insp' ? `<div class="box"><h2>Alertas sin orden de servicio</h2>${pend.map(a=>`<div class="row sp"><span><span class="chip lv${a.lv}">${LV[a.lv]}</span> ${h(esc(a.esc).n)} · ${h(a.txt)}</span>${esc(a.esc).insp===ME.insp?btn(a.id,'os','Emitir orden de servicio','pri'):''}</div>`).join('')}</div>` : ''}
+  <div class="tbox tw"><table><thead><tr><th>Orden</th><th>Escuela</th><th>Expediente</th><th>Estado</th><th class="n">Atraso</th></tr></thead><tbody>
+  ${l.map(x=>{const late=osLate(x);return `<tr class="click ${x.no===sel.os?'on':''}" data-os="${x.no}" tabindex="0"><td class="mono">${x.no}</td><td>${h(esc(x.esc).n)}</td><td class="mono">${x.ex?h(x.ex.slice(0,19))+'…':'<span class="chip wa">Sin vincular</span>'}</td><td>${osPhase(x)}</td><td class="n ${late?'late':''}">${late?dur(late):'—'}</td></tr>`;}).join('') || '<tr><td colspan="5" class="empty">Sin órdenes emitidas.</td></tr>'}
+  </tbody></table></div>${det}`;
+};
+function cert(n){
+  const c = EMP[n], m = curM();
+  const escs = Object.keys(ESC).filter(e=>ESC[e].emp===n);
+  const prog = PLAN.filter(p=>escs.includes(p.esc) && p.next===m), hecho = prog.filter(p=>p.hecho).length;
+  const venc = PLAN.filter(p=>escs.includes(p.esc) && p.next<m).length;
+  const os = OS.filter(o=>o.emp===n), lateDays = os.reduce((s,o)=>s+Math.ceil(osLate(o)/D),0);
+  const al = A.filter(a=>escs.includes(a.esc)&&(a.lv==='U'||a.lv==='E')&&a.goAt);
+  const resp = al.length ? Math.round(al.reduce((s,a)=>s+(a.goAt-a.t),0)/al.length/M) : null;
+  const multa = c.total/10000*lateDays;
+  return {n, c, escs, prog:prog.length, hecho, venc, os:os.length, lateDays, resp, multa, cumpl: prog.length?Math.round(hecho/prog.length*100):100};
+}
+V.cer = () => {
+  const emps = Object.keys(EMP).filter(n => role==='emp' ? n===ME.emp : role==='sup'||role==='insp' ? Object.values(ESC).some(e=>e.emp===n && (role==='sup'?e.z===ME.zona:e.insp===ME.insp)) : true);
+  if (!emps.includes(sel.cerEmp)) sel.cerEmp = emps[0];
+  const all = emps.map(cert), s = cert(sel.cerEmp);
+  const bar = p => `<div class="bar ${p<70?'c':p<90?'w':''}"><i style="width:${p}%"></i></div>`;
+  return `<div><h1>Certificación mensual · ${M2S(curM())}</h1><p class="lead">Lo que la inspección necesita para firmar o retener el certificado de cada empresa: preventivo programado contra hecho, tiempos de respuesta y días de atraso en órdenes de servicio, con la multa calculada.</p></div>
+  <div class="tbox tw"><table><thead><tr><th>Empresa</th><th class="n">Escuelas</th><th>Preventivo del mes</th><th class="n">Respuesta media</th><th class="n">Días de atraso</th><th class="n">Multa calculada</th></tr></thead><tbody>
+  ${all.map(x=>`<tr class="click ${x.n===sel.cerEmp?'on':''}" data-cer="${h(x.n)}" tabindex="0"><td>${h(x.n)}</td><td class="n">${x.escs.length}</td><td><div class="row" style="flex-wrap:nowrap">${bar(x.cumpl)}<span class="mono">${x.hecho}/${x.prog}</span></div></td><td class="n">${x.resp!=null?x.resp+' min':'—'}</td><td class="n ${x.lateDays?'late':''}">${x.lateDays}</td><td class="n">${x.multa?ars(x.multa):'—'}</td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="box"><h2>${h(s.n)}</h2>
+   <div class="kv"><span><b>Monto del contrato:</b> ${ars(s.c.total)} (${s.c.meses} meses, cuota ${ars(s.c.cuota)})</span><span><b>Preventivo:</b> ${s.hecho} de ${s.prog} tareas programadas este mes (${s.cumpl} %)${s.venc?` · <span class="late">${s.venc} vencidas de meses anteriores</span>`:''}</span><span><b>Órdenes de servicio:</b> ${s.os} · ${s.lateDays} ${s.lateDays===1?'día':'días'} de atraso acumulados</span></div>
+   <div class="formula">Multa por mora = monto del contrato × 1/10.000 × días de atraso<br>= ${ars(s.c.total)} × 0,0001 × ${s.lateDays} = <b>${ars(s.multa)}</b></div>
+   <p class="cap">Regla de mora tomada de pliegos de mantenimiento escolar (1/10.000 por día de atraso en órdenes de servicio). El pliego vigente de cada contrato fija la regla real. Montos de ejemplo.</p>
+   ${role==='insp'||role==='sup'||role==='ger' ? `<div class="row"><button class="btn pri" type="button" data-certif="${h(s.n)}">Generar informe de certificación</button><button class="btn" type="button" data-multa="${h(s.n)}" ${s.multa?'':'disabled'}>Proponer multa</button></div>` : role==='emp' ? '<p class="note">Vista de la empresa: ve los mismos números que la inspección antes de presentar el certificado.</p>' : ''}
+  </div>`;
+};
+V.pre = () => {
+  const l = PLAN.filter(p=>escScope(role,p.esc)).map(p=>({p, s:planState(p)})).sort((x,y)=>['cr','wa','in','ok'].indexOf(x.s[1])-['cr','wa','in','ok'].indexOf(y.s[1]) || x.p.next-y.p.next);
+  const canMark = role==='emp';
+  return `<div><h1>Plan de preventivo y vencimientos</h1><p class="lead">Rutinas por escuela y equipo. Lo programado para el mes que no se hizo pasa a la certificación; lo vencido avisa a la inspección.</p></div>
+  <div class="tiles">${['cr','wa','in','ok'].map(k=>{const n=l.filter(x=>x.s[1]===k).length;const lab={cr:'vencidas',wa:'programadas, no hechas',in:'vencen el mes próximo',ok:'al día o hechas'}[k];return `<div class="tile ${k==='cr'?'k2':k==='wa'?'k1':k==='ok'?'k0':''}"><b>${n}</b><span>${lab}</span></div>`;}).join('')}</div>
+  <div class="tbox tw"><table><thead><tr><th>Escuela</th><th>Equipo</th><th>Rutina</th><th class="n">Frecuencia</th><th>Última</th><th>Próxima</th><th>Estado</th>${canMark?'<th></th>':''}</tr></thead><tbody>
+  ${l.map(({p,s},i)=>`<tr><td>${h(esc(p.esc).n)}</td><td>${EQT[p.k].n}</td><td>${h(p.rut)}</td><td class="n">${p.f===1?'mensual':p.f===12?'anual':'cada '+p.f+' meses'}</td><td class="mono">${M2S(p.last)}</td><td class="mono">${M2S(p.next)}</td><td><span class="chip ${s[1]}">${s[0]}</span></td>${canMark?`<td>${s[1]==='wa'||s[1]==='cr'?`<button class="btn sm" type="button" data-hecho="${PLAN.indexOf(p)}">Marcar hecha</button>`:''}</td>`:''}</tr>`).join('')}
+  </tbody></table></div>
+  <p class="cap">Frecuencias de ejemplo. Las reales salen del pliego técnico de cada contrato y de la normativa de cada equipo.</p>`;
+};
+V.edi = () => {
+  const escs = Object.keys(ESC).filter(e=>escScope(role,e));
+  if (!escs.includes(sel.edi)) sel.edi = escs[0];
+  const e = ESC[sel.edi], inv = INV[sel.edi], y = new Date(now-3*H).getUTCFullYear();
+  const st = k => { const a = A.find(x=>x.esc===sel.edi && open(x) && x.eq===EQT[k].n.split(' ')[0]); return a ? `<span class="chip lv${a.lv}">${LV[a.lv]}</span>` : '<span class="chip ok">Normal</span>'; };
+  return `<div><h1>Edificios e inventario técnico</h1><p class="lead">Ficha de cada escuela con sus equipos, antigüedad, sensores y relevamiento inicial. Es la base que hoy falta para saber en qué estado estaba cada edificio cuando empezó el contrato.</p></div>
+  <div class="tbox tw"><table><thead><tr><th>Escuela</th><th>Comuna</th><th>Empresa</th><th>Inspección</th><th class="n">Equipos</th><th>Relevamiento inicial</th></tr></thead><tbody>
+  ${escs.map(k=>{const x=ESC[k];return `<tr class="click ${k===sel.edi?'on':''}" data-edi="${k}" tabindex="0"><td>${h(x.n)}</td><td>${h(x.c)}</td><td>${h(x.emp)}</td><td>${h(x.insp)}</td><td class="n">${INV[k].length}</td><td><div class="row" style="flex-wrap:nowrap"><div class="bar ${x.rel<50?'c':x.rel<100?'w':''}"><i style="width:${x.rel}%"></i></div><span class="mono">${x.rel} %</span></div></td></tr>`;}).join('')}
+  </tbody></table></div>
+  <div class="box"><h2>${h(e.n)}</h2>
+   <div class="kv"><span><b>Dirección:</b> ${h(e.dir)} · ${h(e.c)} · Zona ${e.z}</span><span><b>Superficie:</b> ${e.m2.toLocaleString('es-AR')} m²</span><span><b>Relevamiento inicial:</b> ${e.rel} % ${e.rel<100?'<span class="chip wa">Incompleto</span>':'<span class="chip ok">Completo</span>'}</span></div>
+   <div class="tw"><table><thead><tr><th>Equipo</th><th>Modelo</th><th class="n">Año</th><th class="n">Antigüedad</th><th>Sensores Centinela</th><th class="n">Fotos</th><th>Estado</th></tr></thead><tbody>
+   ${inv.map(([k,yr],i)=>`<tr><td>${EQT[k].n}</td><td>${h(EQT[k].mod)}</td><td class="n">${yr}</td><td class="n ${y-yr>25?'late':''}">${y-yr} años</td><td>${h(EQT[k].sens)}</td><td class="n">${(e.rel>=60 || i<2) ? 3 + (i%2) : 0}</td><td>${st(k)}</td></tr>`).join('')}
+   </tbody></table></div>
+   <p class="cap">Equipos, modelos y años de ejemplo. Antigüedad en rojo: más de 25 años.</p>
+  </div>`;
+};
+V.aud = () => {
+  const f = sel.audF;
+  const l = LOG.slice().sort((x,y)=>y.t-x.t).filter(x => !f || (x.user+x.accion+x.objeto+x.detalle).toLowerCase().includes(f.toLowerCase()));
+  return `<div><h1>Registro de auditoría</h1><p class="lead">Quién hizo qué y cuándo. El registro solo suma: nadie puede editar ni borrar una entrada, tampoco un administrador. Sirve para responder a la Defensoría, a la Auditoría o a un pedido de informes.</p></div>
+  <div class="row sp"><input class="f" id="audF" placeholder="Buscar por persona, acción o escuela" value="${h(f)}" aria-label="Buscar en el registro"><span class="lock">${LOG.length} entradas · solo lectura</span></div>
+  <div class="tbox tw"><table><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Objeto</th><th>Detalle</th></tr></thead><tbody>
+  ${l.map(x=>`<tr><td class="mono">${ISO(x.t)}</td><td>${h(x.user)}</td><td>${h(x.accion)}</td><td class="mono">${h(x.objeto)}</td><td>${h(x.detalle)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Sin resultados.</td></tr>'}
+  </tbody></table></div>`;
+};
+
+// ---------- render ----------
+function allowed(t){ return t.roles==='*' || t.roles.split(' ').includes(role); }
+function render(){
+  if (!allowed(TABS.find(t=>t.id===tab))) tab = 'ini';
+  document.getElementById('now').textContent = 'Hora simulada: ' + ISO(now);
+  document.getElementById('nav').innerHTML = TABS.filter(allowed).map(t=>`<button type="button" data-tab="${t.id}" ${t.id===tab?'aria-current="page"':''}>${t.name}</button>`).join('');
+  const rs = document.getElementById('rolSel'); rs.innerHTML = ROLES.map(r=>`<option value="${r.id}" ${r.id===role?'selected':''}>${h(r.who)} (${h(r.name)})</option>`).join('');
+  const act = document.activeElement?.id;
+  document.getElementById('view').innerHTML = V[tab]();
+  if (act === 'audF') { const i = document.getElementById('audF'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+}
+
+document.getElementById('rolSel').addEventListener('change', e => { const prev = role; role = e.target.value; try{localStorage.setItem('cent-esc-rol',role);}catch(_){} log(role,'Ingresó al sistema','Sesión','Cambio de usuario en la demo'); render(); });
+document.addEventListener('input', e => { if (e.target.id === 'audF') { sel.audF = e.target.value; render(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('tr.click')) e.target.click(); });
+document.addEventListener('click', e => {
+  const tr = e.target.closest('tr.click');
+  if (tr) { if (tr.dataset.os) sel.os = tr.dataset.os; if (tr.dataset.cer) sel.cerEmp = tr.dataset.cer; if (tr.dataset.edi) sel.edi = tr.dataset.edi; render(); return; }
+  const b = e.target.closest('button'); if (!b) return;
+  const d = b.dataset;
+  if (d.tab) { tab = d.tab; render(); return; }
+  if (d.go) { tab = d.go; render(); return; }
+  if (d.act) { act(+d.id, d.act); return; }
+  if (d.ostab) { sel.osTab = d.ostab; render(); return; }
+  if (d.ex) { const v = (document.getElementById('exIn').value || '').trim(); const o = OS.find(x=>x.no===d.ex);
+    if (!/^EX-\d{4}-\d{5,9}/.test(v)) { toast('Escribí un número con formato EX-2026-00000000-…'); return; }
+    o.ex = v; o.mov.push({t:now, de:'Inspección', a:'Expediente ' + v.slice(0,19), motivo:'Vinculación a expediente'}); o.docs.push({doc:docNo('PV'), ref:'Pase', t:now}); log(role,'Vinculó expediente', o.no, v); toast('Expediente vinculado'); render(); return; }
+  if (d.certif) { const s = cert(d.certif); log(role,'Generó informe de certificación', d.certif, `${M2S(curM())} · preventivo ${s.hecho}/${s.prog} · ${s.lateDays} días de atraso`); toast('Informe de certificación generado y registrado'); render(); return; }
+  if (d.multa) { const s = cert(d.multa); log(role,'Propuso multa', d.multa, `${ars(s.multa)} por ${s.lateDays} días de atraso`); toast('Multa propuesta y registrada en auditoría'); render(); return; }
+  if (d.hecho) { const p = PLAN[+d.hecho]; p.hecho = true; if (p.next < curM()) { p.last = curM(); p.next = curM() + p.f; p.hecho = null; } log(role,'Marcó preventivo hecho', `${esc(p.esc).n} · ${EQT[p.k].n}`, p.rut); toast('Preventivo registrado'); render(); return; }
+  if (b.id==='t30') now += 30*M;
+  if (b.id==='t2h') now += 2*H;
+  if (b.id==='t24') now += D;
+  if (b.id==='reset') { seed(); toast('Demo reiniciada'); }
+  if (b.id==='sim') { const a = {id:20+A.length, lv:'E', esc:'e12', eq:'Gas', txt:'Detección de gas en sala de calderas', dato:'Detector 22 % LIE · válvula de corte cerrada automáticamente', t:now, st:0, evac:true, plain:'Evacuar según el plan de autoprotección. No accionar llaves de luz. Bomberos y empresa avisados.'}; A.push(a); log('op','Alerta detectada',`Alerta ${a.id}`,`Emergencia con evacuación · ${esc(a.esc).n}`); toast('Fuga de gas simulada en la Esc. N° 12'); }
+  render();
+});
+seed(); render();
+})();
+</script>
