@@ -1,0 +1,20 @@
+# Secretos y configuración propia de cada equipo (NUNCA subir)
+*.local.ini
+.env
+*.key
+*.pem
+
+# Datos que genera la Raspberry
+raspberry/data/
+data/
+
+# Integraciones: salidas generadas (el ejemplo sí se sube)
+integraciones/salida/*
+!integraciones/salida/centinela_import_ejemplo.json
+
+# Python / sistema
+__pycache__/
+*.pyc
+*.bak
+.DS_Store
+Thumbs.db
