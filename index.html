@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Centinela · Pantallas</title>
+<style>
+  :root { --bg:#f6f5f1; --card:#fff; --tx:#1d1d1b; --mut:#6b6a66; --ac:#f5c400; --bd:#e4e2dc; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--tx); }
+  header { padding:40px 20px 16px; max-width:920px; margin:0 auto; }
+  .logo { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:10px; background:var(--ac); font-weight:800; font-size:22px; }
+  h1 { margin:14px 0 6px; font-size:30px; }
+  p.sub { margin:0; color:var(--mut); font-size:16px; line-height:1.5; }
+  main { max-width:920px; margin:0 auto; padding:8px 20px 48px; }
+  h2 { font-size:14px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); margin:28px 0 10px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:14px; }
+  a.card { display:block; background:var(--card); border:1px solid var(--bd); border-radius:14px; padding:18px; text-decoration:none; color:inherit; transition:transform .12s, box-shadow .12s, border-color .12s; }
+  a.card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,.08); border-color:var(--ac); }
+  .card b { display:block; font-size:18px; margin-bottom:6px; }
+  .card span { color:var(--mut); font-size:14px; line-height:1.45; }
+  .card .go { display:inline-block; margin-top:12px; font-weight:600; font-size:14px; color:var(--tx); }
+  footer { max-width:920px; margin:0 auto; padding:0 20px 40px; color:var(--mut); font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">C</div>
+  <h1>Centinela</h1>
+  <p class="sub">Alerta temprana para el mantenimiento preventivo de edificios. Estas son las pantallas de la propuesta. Todas usan datos de ejemplo: tocá cualquier tarjeta para abrirla.</p>
+</header>
+<main>
+  <h2>Escuelas (propuesta GCBA)</h2>
+  <div class="grid">
+    <a class="card" href="raspberry/sistema.html"><b>Sistema por rol</b><span>La pantalla de la demo: cada responsable ve lo suyo. Fuera de la Raspberry muestra "sin conexión", pero se puede navegar y simular situaciones.</span><div class="go">Abrir →</div></a>
+    <a class="card" href="maquetas/escuelas/centinela-escuelas-roles.html"><b>Escuelas por rol</b><span>Maqueta de la vista por rol para las escuelas.</span><div class="go">Abrir →</div></a>
+    <a class="card" href="maquetas/escuelas/centinela-escuelas.html"><b>Escuelas</b><span>Maqueta general del sistema para escuelas.</span><div class="go">Abrir →</div></a>
+  </div>
+
+  <h2>Edificios y consorcios</h2>
+  <div class="grid">
+    <a class="card" href="maquetas/centinela_app.html"><b>App</b><span>Expensas y órdenes de trabajo.</span><div class="go">Abrir →</div></a>
+    <a class="card" href="maquetas/centinela_cartera.html"><b>Cartera de edificios</b><span>Vista de todos los edificios administrados.</span><div class="go">Abrir →</div></a>
+    <a class="card" href="maquetas/centinela_usuarios.html"><b>Usuarios por rol</b><span>Qué ve cada tipo de usuario.</span><div class="go">Abrir →</div></a>
+    <a class="card" href="maquetas/centinela.html"><b>Centinela de Equipos</b><span>Maqueta de equipos: calderas, bombas, tanques, ascensores.</span><div class="go">Abrir →</div></a>
+  </div>
+</main>
+<footer>Centinela · Nico y Alan · Pantallas de demostración con datos inventados.</footer>
+</body>
+</html>
